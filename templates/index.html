@@ -3,139 +3,72 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sign Language Translator - English/Hindi/Marathi to ISL</title>
+    <title>Sign Language Translator - Emoji Version</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
 </head>
 <body>
-    <div class="container">
-        <!-- Header -->
-        <header>
-            <h1>🤟 Sign Language Translator</h1>
-            <p class="subtitle">English • Hindi • Marathi to Indian Sign Language (ISL)</p>
-            <p class="tagline">Empowering Communication for Deaf and Mute Students</p>
-        </header>
+<div class="container">
+    <header>
+        <h1>🤟 Sign Language Translator</h1>
+        <p class="subtitle">English • Hindi • Marathi to Indian Sign Language (ISL)</p>
+        <p class="tagline">Empowering Communication for Deaf and Mute Students</p>
+    </header>
 
-        <!-- Alert Box -->
-        <div id="alertBox" class="alert"></div>
+    <div id="alertBox" class="alert"></div>
 
-        <!-- Main Content Grid -->
-        <div class="main-content">
-            <!-- Left Panel - Input Section -->
-            <div class="card">
-                <h2>
-                    <span>📝</span>
-                    Enter Text
-                </h2>
-
-                <!-- Language Selector -->
-                <div class="language-selector">
-                    <button class="lang-btn active" data-lang="en">
-                        <span class="flag">🇬🇧</span>
-                        English
-                    </button>
-                    <button class="lang-btn" data-lang="hi">
-                        <span class="flag">🇮🇳</span>
-                        हिंदी
-                    </button>
-                    <button class="lang-btn" data-lang="mr">
-                        <span class="flag">🇮🇳</span>
-                        मराठी
-                    </button>
-                </div>
-
-                <!-- Text Input -->
-                <textarea 
-                    id="inputText" 
-                    placeholder="Type your message here... (e.g., Hello, how are you?)"
-                    rows="8"
-                ></textarea>
-
-                <div class="char-count">
-                    <span id="charCount">0</span> characters
-                </div>
-
-                <!-- Translate Button -->
-                <button class="translate-btn" onclick="translateText()">
-                    <span id="translateIcon">🔄</span>
-                    <span id="translateText">Translate to Sign Language</span>
-                </button>
-
-                <!-- Loading Spinner -->
-                <div class="loading" id="loadingSpinner">
-                    <div class="spinner"></div>
-                    <p>Translating...</p>
-                </div>
-            </div>
-
-            <!-- Right Panel - Output Section -->
-            <div class="card">
-                <h2>
-                    <span>🎬</span>
-                    Sign Language Video
-                </h2>
-
-                <!-- Video Player -->
-                <div id="videoPlayer" class="video-player">
-                    <div class="placeholder-content">
-                        <span class="placeholder-icon">🤟</span>
-                        <p>Video will appear here after translation</p>
-                    </div>
-                </div>
-
-                <!-- Video Controls -->
-                <div class="controls">
-                    <button class="control-btn play-btn" onclick="playAnimation()">
-                        ▶️ Play
-                    </button>
-                    <button class="control-btn pause-btn" onclick="pauseAnimation()">
-                        ⏸️ Pause
-                    </button>
-                    <button class="control-btn stop-btn" onclick="stopAnimation()">
-                        ⏹️ Stop
-                    </button>
-                </div>
-
-                <!-- Statistics -->
-                <div class="stats">
-                    <div class="stat-box">
-                        <div class="stat-value" id="signCount">0</div>
-                        <div class="stat-label">Signs</div>
-                    </div>
-                    <div class="stat-box">
-                        <div class="stat-value" id="wordCount">0</div>
-                        <div class="stat-label">Words</div>
-                    </div>
-                    <div class="stat-box">
-                        <div class="stat-value" id="duration">0s</div>
-                        <div class="stat-label">Duration</div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Sign Sequence Display -->
+    <div class="main-content">
         <div class="card">
-            <h2>
-                <span>📋</span>
-                Sign Sequence
-            </h2>
-            <div class="sign-sequence" id="signSequence">
-                <div class="empty-state">
-                    <span class="empty-icon">📝</span>
-                    <p>Translation sequence will appear here</p>
-                    <small>Enter text above and click translate to get started</small>
-                </div>
+            <h2>📝 Enter Text</h2>
+            <div class="language-selector">
+                <button class="lang-btn active" data-lang="en">🇬🇧 English</button>
+                <button class="lang-btn" data-lang="hi">🇮🇳 हिंदी</button>
+                <button class="lang-btn" data-lang="mr">🇮🇳 मराठी</button>
             </div>
+            <textarea id="inputText" placeholder="Type your message here..." rows="8"></textarea>
+            <div class="char-count"><span id="charCount">0</span> characters</div>
+            <button class="translate-btn" onclick="translateText()">🔄 Translate to Sign Language</button>
+            <div class="loading" id="loadingSpinner"><div class="spinner"></div><p>Translating...</p></div>
         </div>
 
-        <!-- Footer -->
-        <footer>
-            <p>Made with ❤️ for Deaf and Mute Students</p>
-            <p class="footer-note">Indian Sign Language (ISL) Translation System</p>
-        </footer>
+        <div class="card">
+            <h2>🎬 Sign Language Animation</h2>
+            <div id="videoPlayer" class="video-player">
+                <div class="placeholder-content">
+                    <span class="placeholder-icon">🤟</span>
+                    <p>Animation will appear here after translation</p>
+                </div>
+            </div>
+            <div class="controls">
+                <button onclick="playAnimation()">▶️ Play</button>
+                <button onclick="pauseAnimation()">⏸️ Pause</button>
+                <button onclick="stopAnimation()">⏹️ Stop</button>
+            </div>
+            <div class="stats">
+                <div class="stat-box"><div id="signCount">0</div>Signs</div>
+                <div class="stat-box"><div id="wordCount">0</div>Words</div>
+                <div class="stat-box"><div id="duration">0s</div>Duration</div>
+            </div>
+        </div>
     </div>
 
-    <!-- JavaScript -->
-    <script src="{{ url_for('static', filename='js/script.js') }}"></script>
+    <div class="card">
+        <h2>📋 Sign Sequence</h2>
+        <div id="signSequence" class="sign-sequence">
+            <div class="empty-state">
+                <span class="empty-icon">📝</span>
+                <p>Translation sequence will appear here</p>
+                <small>Enter text above and click translate to get started</small>
+            </div>
+        </div>
+    </div>
+
+    <footer>
+        <p>Made with ❤️ for Deaf and Mute Students</p>
+        <p class="footer-note">Indian Sign Language (ISL) Translation System</p>
+    </footer>
+</div>
+
+<script src="{{ url_for('static', filename='js/script.js') }}"></script>
 </body>
 </html>
+
