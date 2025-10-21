@@ -1,5 +1,5 @@
 """
-Sign Language Translation System - Core Logic
+Sign Language Translation System - Emoji Version
 """
 
 from typing import List, Dict
@@ -28,36 +28,118 @@ class SignLanguageDictionary:
     
     def load_dictionary(self):
         return {
-            'hello':{https://www.freepik.com/free-photo/friendly-happy-beautiful-woman-waving-hello_6447708.htm#fromView=keyword&page=1&position=10&uuid=d3b523f0-a099-4446-94a3-230dd96fe807&query=Hello+hand+gesture},
-            'hi': {'sign_id': 'ISL_001', 'video': 'hello.mp4'},
-            'thank': {'sign_id': 'ISL_002', 'video': 'thank.mp4'},
-            'thanks': {'sign_id': 'ISL_002', 'video': 'thank.mp4'},
-            'you': {'sign_id': 'ISL_003', 'video': 'you.mp4'},
-            'help': {'sign_id': 'ISL_004', 'video': 'help.mp4'},
-            'please': {'sign_id': 'ISL_005', 'video': 'please.mp4'},
-            'sorry': {'sign_id': 'ISL_006', 'video': 'sorry.mp4'},
-            'yes': {'sign_id': 'ISL_007', 'video': 'yes.mp4'},
-            'no': {'sign_id': 'ISL_008', 'video': 'no.mp4'},
-            'how': {'sign_id': 'ISL_009', 'video': 'how.mp4'},
-            'are': {'sign_id': 'ISL_010', 'video': 'are.mp4'},
-            'good': {'sign_id': 'ISL_011', 'video': 'good.mp4'},
-            'bad': {'sign_id': 'ISL_012', 'video': 'bad.mp4'},
-            'name': {'sign_id': 'ISL_013', 'video': 'name.mp4'},
-            'what': {'sign_id': 'ISL_014', 'video': 'what.mp4'},
-            'where': {'sign_id': 'ISL_015', 'video': 'where.mp4'},
-            'when': {'sign_id': 'ISL_016', 'video': 'when.mp4'},
-            'who': {'sign_id': 'ISL_017', 'video': 'who.mp4'},
-            'नमस्ते': {'sign_id': 'ISL_001', 'video': 'hello.mp4'},
-            'धन्यवाद': {'sign_id': 'ISL_002', 'video': 'thank.mp4'},
-            'कृपया': {'sign_id': 'ISL_005', 'video': 'please.mp4'},
-            'नमस्कार': {'sign_id': 'ISL_001', 'video': 'hello.mp4'},
+            # Greetings
+            'hello': {'sign_id': 'ISL_001', 'emoji': '🤟'},
+            'hi': {'sign_id': 'ISL_001', 'emoji': '🤟'},
+            'hey': {'sign_id': 'ISL_001', 'emoji': '🤟'},
+            'नमस्ते': {'sign_id': 'ISL_001', 'emoji': '🤟'},
+            'नमस्कार': {'sign_id': 'ISL_001', 'emoji': '🤟'},
+            'good morning': {'sign_id': 'ISL_002', 'emoji': '🌅'},
+            'good night': {'sign_id': 'ISL_003', 'emoji': '🌙'},
+            
+            # Gratitude / Politeness
+            'thank': {'sign_id': 'ISL_004', 'emoji': '🙏'},
+            'thanks': {'sign_id': 'ISL_004', 'emoji': '🙏'},
+            'धन्यवाद': {'sign_id': 'ISL_004', 'emoji': '🙏'},
+            'please': {'sign_id': 'ISL_005', 'emoji': '🙏'},
+            'कृपया': {'sign_id': 'ISL_005', 'emoji': '🙏'},
+            'sorry': {'sign_id': 'ISL_006', 'emoji': '😔'},
+            
+            # Yes / No / Confirmation
+            'yes': {'sign_id': 'ISL_007', 'emoji': '👍'},
+            'no': {'sign_id': 'ISL_008', 'emoji': '👎'},
+            'ok': {'sign_id': 'ISL_009', 'emoji': '👌'},
+            'agree': {'sign_id': 'ISL_010', 'emoji': '🤝'},
+            'disagree': {'sign_id': 'ISL_011', 'emoji': '✋'},
+            
+            # Personal interactions
+            'you': {'sign_id': 'ISL_012', 'emoji': '🤲'},
+            'me': {'sign_id': 'ISL_013', 'emoji': '🙋'},
+            'we': {'sign_id': 'ISL_014', 'emoji': '👨‍👩‍👧‍👦'},
+            'friend': {'sign_id': 'ISL_015', 'emoji': '🫂'},
+            'help': {'sign_id': 'ISL_016', 'emoji': '🆘'},
+            
+            # Emotions
+            'happy': {'sign_id': 'ISL_017', 'emoji': '😃'},
+            'sad': {'sign_id': 'ISL_018', 'emoji': '😢'},
+            'angry': {'sign_id': 'ISL_019', 'emoji': '😡'},
+            'love': {'sign_id': 'ISL_020', 'emoji': '❤️'},
+            'excited': {'sign_id': 'ISL_021', 'emoji': '🤩'},
+            'tired': {'sign_id': 'ISL_022', 'emoji': '😴'},
+            
+            # Common questions
+            'what': {'sign_id': 'ISL_023', 'emoji': '❓'},
+            'where': {'sign_id': 'ISL_024', 'emoji': '📍'},
+            'when': {'sign_id': 'ISL_025', 'emoji': '⏰'},
+            'who': {'sign_id': 'ISL_026', 'emoji': '🧑'},
+            'how': {'sign_id': 'ISL_027', 'emoji': '❓'},
+            
+            # Numbers 0-10
+            'zero': {'sign_id': 'ISL_028', 'emoji': '0️⃣'},
+            'one': {'sign_id': 'ISL_029', 'emoji': '1️⃣'},
+            'two': {'sign_id': 'ISL_030', 'emoji': '2️⃣'},
+            'three': {'sign_id': 'ISL_031', 'emoji': '3️⃣'},
+            'four': {'sign_id': 'ISL_032', 'emoji': '4️⃣'},
+            'five': {'sign_id': 'ISL_033', 'emoji': '5️⃣'},
+            'six': {'sign_id': 'ISL_034', 'emoji': '6️⃣'},
+            'seven': {'sign_id': 'ISL_035', 'emoji': '7️⃣'},
+            'eight': {'sign_id': 'ISL_036', 'emoji': '8️⃣'},
+            'nine': {'sign_id': 'ISL_037', 'emoji': '9️⃣'},
+            'ten': {'sign_id': 'ISL_038', 'emoji': '🔟'},
+            
+            # Daily objects
+            'food': {'sign_id': 'ISL_039', 'emoji': '🍔'},
+            'water': {'sign_id': 'ISL_040', 'emoji': '💧'},
+            'house': {'sign_id': 'ISL_041', 'emoji': '🏠'},
+            'car': {'sign_id': 'ISL_042', 'emoji': '🚗'},
+            'phone': {'sign_id': 'ISL_043', 'emoji': '📱'},
+            'book': {'sign_id': 'ISL_044', 'emoji': '📖'},
+            'school': {'sign_id': 'ISL_045', 'emoji': '🏫'},
+            'work': {'sign_id': 'ISL_046', 'emoji': '💼'},
+            'sleep': {'sign_id': 'ISL_047', 'emoji': '😴'},
+            'play': {'sign_id': 'ISL_048', 'emoji': '🎮'},
+            
+            # Family
+            'mother': {'sign_id': 'ISL_049', 'emoji': '👩‍👧'},
+            'father': {'sign_id': 'ISL_050', 'emoji': '👨‍👦'},
+            'brother': {'sign_id': 'ISL_051', 'emoji': '👦'},
+            'sister': {'sign_id': 'ISL_052', 'emoji': '👧'},
+            'child': {'sign_id': 'ISL_053', 'emoji': '🧒'},
+            
+            # Colors
+            'red': {'sign_id': 'ISL_054', 'emoji': '🟥'},
+            'blue': {'sign_id': 'ISL_055', 'emoji': '🟦'},
+            'green': {'sign_id': 'ISL_056', 'emoji': '🟩'},
+            'yellow': {'sign_id': 'ISL_057', 'emoji': '🟨'},
+            'black': {'sign_id': 'ISL_058', 'emoji': '⬛'},
+            'white': {'sign_id': 'ISL_059', 'emoji': '⬜'},
+            
+            # Animals
+            'dog': {'sign_id': 'ISL_060', 'emoji': '🐶'},
+            'cat': {'sign_id': 'ISL_061', 'emoji': '🐱'},
+            'bird': {'sign_id': 'ISL_062', 'emoji': '🐦'},
+            'fish': {'sign_id': 'ISL_063', 'emoji': '🐟'},
+            'cow': {'sign_id': 'ISL_064', 'emoji': '🐄'},
+            'lion': {'sign_id': 'ISL_065', 'emoji': '🦁'},
+            
+            # Emotions / Actions
+            'good': {'sign_id': 'ISL_066', 'emoji': '😃'},
+            'bad': {'sign_id': 'ISL_067', 'emoji': '😞'},
+            'fun': {'sign_id': 'ISL_068', 'emoji': '🎉'},
+            'music': {'sign_id': 'ISL_069', 'emoji': '🎵'},
+            'movie': {'sign_id': 'ISL_070', 'emoji': '🎬'},
+            'game': {'sign_id': 'ISL_071', 'emoji': '🎮'},
+            'birthday': {'sign_id': 'ISL_072', 'emoji': '🎂'},
+            'congratulations': {'sign_id': 'ISL_073', 'emoji': '🎉'},
+            
+            # Add more words as needed...
         }
     
     def get_sign(self, word: str):
         return self.word_to_sign.get(word.lower(), None)
     
     def fingerspell(self, word: str) -> List[Dict]:
-        return [{'letter': char, 'sign_id': f'FS_{char.upper()}'} 
+        return [{'letter': char, 'emoji': '✋', 'sign_id': f'FS_{char.upper()}'}
                 for char in word if char.isalnum()]
 
 class SignLanguageTranslator:
