@@ -1,7 +1,6 @@
 """
 File: app.py
-Description: Main Flask application for Sign Language Translation System
-Instructions: Copy this entire file and save as 'app.py' in your project folder
+Description: Main Flask application for Sign Language Translation System with Emoji ISL
 """
 
 from flask import Flask, request, jsonify, render_template
@@ -24,7 +23,7 @@ def index():
 @app.route('/api/translate', methods=['POST'])
 def translate():
     """
-    Translate text to sign language
+    Translate text to sign language (emoji-based)
     
     Request body:
     {
@@ -42,8 +41,6 @@ def translate():
             }), 400
         
         text = data['text']
-        
-        # Process translation
         result = translator.process_request(text)
         
         return jsonify(result), 200
@@ -62,8 +59,8 @@ def get_dictionary():
     return jsonify({
         'total_words': len(dictionary),
         'languages': ['en', 'hi', 'mr'],
-        'categories': ['greetings', 'numbers', 'common_phrases', 'alphabets'],
-        'words': list(dictionary.keys())[:50]  # First 50 words
+        'categories': ['greetings', 'numbers', 'common_phrases', 'alphabets', 'emojis'],
+        'words': list(dictionary.keys())
     })
 
 
@@ -75,15 +72,19 @@ def get_sign_info(word):
     if sign:
         return jsonify({
             'word': word,
-            'sign_id': sign['sign_id'],
-            'video_url': f'/static/videos/{sign["video"]}',
+            'sign_id': sign.get('sign_id', 'FS'),
+            'emoji': sign.get('emoji', '🤟'),
             'description': f'Sign for {word}',
             'category': 'general'
         })
     else:
+        # Fingerspelling fallback
+        fingerspelled = translator.translator.dictionary.fingerspell(word)
         return jsonify({
-            'error': 'Word not found in dictionary',
-            'suggestion': 'Will be fingerspelled'
+            'word': word,
+            'type': 'fingerspell',
+            'sequence': fingerspelled,
+            'description': f'Fingerspelling for {word}'
         }), 404
 
 
@@ -92,26 +93,26 @@ def health_check():
     """Health check endpoint"""
     return jsonify({
         'status': 'healthy',
-        'service': 'Sign Language Translation API',
+        'service': 'Emoji ISL Translation API',
         'version': '1.0.0',
         'dictionary_size': len(translator.translator.dictionary.word_to_sign)
     })
 
 
 if __name__ == '__main__':
-    # Create necessary directories
+    # Create necessary directories if they don't exist
     os.makedirs('static/videos', exist_ok=True)
     os.makedirs('static/css', exist_ok=True)
     os.makedirs('static/js', exist_ok=True)
     os.makedirs('templates', exist_ok=True)
     
     print("\n" + "="*60)
-    print("🤟 SIGN LANGUAGE TRANSLATION SYSTEM")
+    print("🤟 EMOJI-BASED SIGN LANGUAGE TRANSLATION SYSTEM")
     print("="*60)
     print("\n✅ Server starting...")
     print("📍 Open your browser and go to: http://localhost:5000")
     print("\n📚 API Endpoints:")
-    print("   • POST /api/translate - Translate text to sign language")
+    print("   • POST /api/translate - Translate text to ISL emojis")
     print("   • GET  /api/dictionary - View available words")
     print("   • GET  /api/signs/<word> - Get sign information")
     print("   • GET  /api/health - Check system health")
