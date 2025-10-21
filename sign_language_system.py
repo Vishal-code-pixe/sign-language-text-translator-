@@ -28,7 +28,7 @@ class SignLanguageDictionary:
     
     def load_dictionary(self):
         return {
-            'hello': {'sign_id': 'ISL_001', 'video': 'hello.mp4'},
+            'hello':{https://www.freepik.com/free-photo/friendly-happy-beautiful-woman-waving-hello_6447708.htm#fromView=keyword&page=1&position=10&uuid=d3b523f0-a099-4446-94a3-230dd96fe807&query=Hello+hand+gesture},
             'hi': {'sign_id': 'ISL_001', 'video': 'hello.mp4'},
             'thank': {'sign_id': 'ISL_002', 'video': 'thank.mp4'},
             'thanks': {'sign_id': 'ISL_002', 'video': 'thank.mp4'},
