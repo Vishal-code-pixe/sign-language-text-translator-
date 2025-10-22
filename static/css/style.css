@@ -1,267 +1,145 @@
-/* 
-File: style.css
-Description: Styling for Sign Language Translation System
-Instructions: Save this file as 'style.css' in 'static/css/' folder
-*/
-
-/* ============================================
-   RESET & BASE STYLES
-============================================ */
-* {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-}
-
+/* ============================================ */
+/* GLOBAL STYLES                                  */
+/* ============================================ */
 body {
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    min-height: 100vh;
-    padding: 20px;
-    line-height: 1.6;
+    background: #f5f7fa;
+    margin: 0;
+    padding: 0;
+    color: #333;
 }
 
 .container {
     max-width: 1200px;
     margin: 0 auto;
+    padding: 20px;
 }
 
-/* ============================================
-   HEADER STYLES
-============================================ */
+/* ============================================ */
+/* HEADER                                         */
+/* ============================================ */
 header {
-    background: white;
-    padding: 30px;
-    border-radius: 15px;
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
     text-align: center;
     margin-bottom: 30px;
-    animation: slideDown 0.5s ease-out;
 }
 
-@keyframes slideDown {
-    from {
-        opacity: 0;
-        transform: translateY(-30px);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
-}
-
-h1 {
-    color: #667eea;
+header h1 {
     font-size: 2.5em;
-    margin-bottom: 10px;
-    font-weight: 700;
+    margin: 0;
 }
 
-.subtitle {
-    color: #666;
+header .subtitle {
     font-size: 1.2em;
-    margin-bottom: 5px;
+    margin: 5px 0;
+    color: #555;
 }
 
-.tagline {
-    color: #999;
+header .tagline {
     font-size: 0.95em;
-    font-style: italic;
+    color: #888;
 }
 
-/* ============================================
-   ALERT STYLES
-============================================ */
+/* ============================================ */
+/* ALERT BOX                                      */
+/* ============================================ */
 .alert {
-    padding: 15px 20px;
-    border-radius: 8px;
-    margin-bottom: 20px;
     display: none;
-    animation: slideIn 0.3s ease-out;
+    padding: 12px 20px;
+    border-radius: 5px;
+    margin-bottom: 20px;
+    font-weight: bold;
+    text-align: center;
 }
 
-@keyframes slideIn {
-    from {
-        opacity: 0;
-        transform: translateX(-20px);
-    }
-    to {
-        opacity: 1;
-        transform: translateX(0);
-    }
-}
+.alert.active { display: block; }
+.alert.success { background: #d4edda; color: #155724; }
+.alert.error { background: #f8d7da; color: #721c24; }
 
-.alert.success {
-    background: #d4edda;
-    color: #155724;
-    border: 1px solid #c3e6cb;
-}
-
-.alert.error {
-    background: #f8d7da;
-    color: #721c24;
-    border: 1px solid #f5c6cb;
-}
-
-.alert.active {
-    display: block;
-}
-
-/* ============================================
-   MAIN CONTENT GRID
-============================================ */
+/* ============================================ */
+/* MAIN CONTENT GRID                              */
+/* ============================================ */
 .main-content {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 30px;
-    margin-bottom: 30px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px;
 }
 
-/* ============================================
-   CARD STYLES
-============================================ */
 .card {
     background: white;
-    padding: 30px;
-    border-radius: 15px;
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
-    animation: fadeIn 0.6s ease-out;
+    padding: 20px;
+    border-radius: 12px;
+    flex: 1;
+    min-width: 300px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.08);
 }
 
-@keyframes fadeIn {
-    from {
-        opacity: 0;
-        transform: scale(0.95);
-    }
-    to {
-        opacity: 1;
-        transform: scale(1);
-    }
-}
-
-.card h2 {
-    color: #667eea;
-    margin-bottom: 20px;
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    font-size: 1.5em;
-}
-
-.card h2 span {
-    font-size: 1.2em;
-}
-
-/* ============================================
-   LANGUAGE SELECTOR
-============================================ */
+/* ============================================ */
+/* LANGUAGE SELECTOR                              */
+/* ============================================ */
 .language-selector {
     display: flex;
     gap: 10px;
-    margin-bottom: 20px;
+    margin-bottom: 10px;
 }
 
 .lang-btn {
     flex: 1;
-    padding: 12px;
-    border: 2px solid #667eea;
-    background: white;
-    color: #667eea;
-    border-radius: 8px;
+    padding: 8px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
     cursor: pointer;
-    font-size: 1em;
-    font-weight: 600;
-    transition: all 0.3s ease;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 8px;
+    background: #f0f0f0;
+    transition: all 0.2s;
 }
 
-.lang-btn:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 5px 15px rgba(102, 126, 234, 0.3);
-}
-
-.lang-btn.active {
+.lang-btn.active, .lang-btn:hover {
     background: #667eea;
     color: white;
+    border-color: #667eea;
 }
 
-.lang-btn .flag {
-    font-size: 1.2em;
-}
-
-/* ============================================
-   TEXT INPUT
-============================================ */
+/* ============================================ */
+/* TEXTAREA & BUTTONS                              */
+/* ============================================ */
 textarea {
     width: 100%;
-    min-height: 150px;
-    padding: 15px;
-    border: 2px solid #e0e0e0;
+    padding: 12px;
     border-radius: 8px;
-    font-size: 1.1em;
-    resize: vertical;
-    font-family: inherit;
-    transition: border-color 0.3s ease;
+    border: 1px solid #ccc;
+    font-size: 1em;
+    resize: none;
 }
 
-textarea:focus {
-    outline: none;
-    border-color: #667eea;
-    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+.translate-btn {
+    margin-top: 12px;
+    padding: 12px 20px;
+    font-size: 1em;
+    border: none;
+    border-radius: 8px;
+    background: #667eea;
+    color: white;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.translate-btn:hover {
+    background: #556cd6;
 }
 
 .char-count {
     text-align: right;
+    font-size: 0.85em;
     color: #999;
-    font-size: 0.9em;
-    margin-top: 8px;
+    margin-top: 4px;
 }
 
-/* ============================================
-   TRANSLATE BUTTON
-============================================ */
-.translate-btn {
-    width: 100%;
-    padding: 15px;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    color: white;
-    border: none;
-    border-radius: 8px;
-    font-size: 1.2em;
-    font-weight: 600;
-    cursor: pointer;
-    margin-top: 20px;
-    transition: all 0.3s ease;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 10px;
-}
-
-.translate-btn:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 10px 25px rgba(102, 126, 234, 0.4);
-}
-
-.translate-btn:active {
-    transform: translateY(0);
-}
-
-.translate-btn:disabled {
-    opacity: 0.6;
-    cursor: not-allowed;
-}
-
-/* ============================================
-   LOADING SPINNER
-============================================ */
+/* ============================================ */
+/* LOADING SPINNER                                */
+/* ============================================ */
 .loading {
     display: none;
     text-align: center;
-    padding: 20px;
+    margin-top: 15px;
 }
 
 .loading.active {
@@ -272,369 +150,119 @@ textarea:focus {
     border: 4px solid #f3f3f3;
     border-top: 4px solid #667eea;
     border-radius: 50%;
-    width: 50px;
-    height: 50px;
+    width: 35px;
+    height: 35px;
+    margin: 0 auto 10px auto;
     animation: spin 1s linear infinite;
-    margin: 0 auto 10px;
 }
 
 @keyframes spin {
-    0% { transform: rotate(0deg); }
-    100% { transform: rotate(360deg); }
+    0% { transform: rotate(0deg);}
+    100% { transform: rotate(360deg);}
 }
 
-.loading p {
-    color: #667eea;
-    font-weight: 600;
-}
-
-/* ============================================
-   VIDEO PLAYER
-============================================ */
+/* ============================================ */
+/* VIDEO / EMOJI DISPLAY                           */
+/* ============================================ */
 .video-player {
-    width: 100%;
-    background: #000;
-    border-radius: 8px;
-    min-height: 300px;
+    min-height: 200px;
+    background: #f9f9f9;
+    border: 2px dashed #ccc;
+    border-radius: 12px;
     display: flex;
-    align-items: center;
     justify-content: center;
-    color: white;
-    font-size: 1.2em;
-    overflow: hidden;
+    align-items: center;
     position: relative;
+    overflow: hidden;
 }
 
-.placeholder-content {
+.video-player div {
     text-align: center;
-    padding: 40px;
 }
 
-.placeholder-icon {
-    font-size: 4em;
-    display: block;
-    margin-bottom: 20px;
-}
-
-.video-player video {
-    width: 100%;
-    height: 100%;
-    object-fit: contain;
-}
-
-/* ============================================
-   CONTROLS
-============================================ */
+/* ============================================ */
+/* CONTROLS                                        */
+/* ============================================ */
 .controls {
+    margin-top: 12px;
     display: flex;
     gap: 10px;
-    margin-top: 20px;
 }
 
 .control-btn {
     flex: 1;
-    padding: 12px;
+    padding: 10px 0;
     border: none;
     border-radius: 8px;
-    cursor: pointer;
+    background: #667eea;
+    color: white;
     font-size: 1em;
-    font-weight: 600;
-    transition: all 0.3s ease;
+    cursor: pointer;
 }
 
 .control-btn:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+    background: #556cd6;
 }
 
-.control-btn:active {
-    transform: translateY(0);
-}
-
-.play-btn {
-    background: #4caf50;
-    color: white;
-}
-
-.play-btn:hover {
-    background: #45a049;
-}
-
-.pause-btn {
-    background: #ff9800;
-    color: white;
-}
-
-.pause-btn:hover {
-    background: #fb8c00;
-}
-
-.stop-btn {
-    background: #f44336;
-    color: white;
-}
-
-.stop-btn:hover {
-    background: #e53935;
-}
-
-/* ============================================
-   STATISTICS
-============================================ */
+/* ============================================ */
+/* STATS                                          */
+/* ============================================ */
 .stats {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 15px;
-    margin-top: 20px;
+    display: flex;
+    justify-content: space-around;
+    margin-top: 15px;
 }
 
 .stat-box {
-    background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
-    padding: 20px;
-    border-radius: 8px;
     text-align: center;
-    transition: transform 0.3s ease;
 }
 
-.stat-box:hover {
-    transform: translateY(-5px);
-}
-
-.stat-value {
-    font-size: 2.5em;
+.stat-box .stat-value {
+    font-size: 1.5em;
     font-weight: bold;
     color: #667eea;
-    line-height: 1;
 }
 
-.stat-label {
-    color: #666;
-    margin-top: 8px;
-    font-size: 0.9em;
-    font-weight: 600;
+.stat-box .stat-label {
+    font-size: 0.85em;
+    color: #555;
 }
 
-/* ============================================
-   SIGN SEQUENCE
-============================================ */
+/* ============================================ */
+/* SIGN SEQUENCE                                   */
+/* ============================================ */
 .sign-sequence {
-    max-height: 400px;
-    overflow-y: auto;
-    padding-right: 10px;
-}
-
-.sign-sequence::-webkit-scrollbar {
-    width: 8px;
-}
-
-.sign-sequence::-webkit-scrollbar-track {
-    background: #f1f1f1;
-    border-radius: 10px;
-}
-
-.sign-sequence::-webkit-scrollbar-thumb {
-    background: #667eea;
-    border-radius: 10px;
-}
-
-.sign-sequence::-webkit-scrollbar-thumb:hover {
-    background: #5568d3;
-}
-
-.empty-state {
-    text-align: center;
-    padding: 60px 20px;
-    color: #999;
-}
-
-.empty-icon {
-    font-size: 4em;
-    display: block;
-    margin-bottom: 20px;
-    opacity: 0.5;
-}
-
-.empty-state p {
-    font-size: 1.1em;
-    margin-bottom: 10px;
-}
-
-.empty-state small {
-    font-size: 0.9em;
-    color: #bbb;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
 }
 
 .sign-item {
-    padding: 15px;
+    padding: 10px 12px;
     background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
-    margin-bottom: 12px;
     border-radius: 8px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    transition: all 0.3s ease;
-    animation: slideIn 0.3s ease-out;
-}
-
-.sign-item:hover {
-    transform: translateX(5px);
-    box-shadow: 0 5px 15px rgba(102, 126, 234, 0.2);
-}
-
-.sign-word {
+    min-width: 80px;
+    text-align: center;
     font-weight: bold;
-    color: #667eea;
-    font-size: 1.1em;
+    transition: all 0.3s;
 }
 
-.sign-type {
-    background: #667eea;
+.sign-item.fingerspell {
+    background: linear-gradient(135deg, #ffe0b2 0%, #ffcc80 100%);
+}
+
+.sign-item.highlight {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
     color: white;
-    padding: 6px 14px;
-    border-radius: 20px;
-    font-size: 0.85em;
-    font-weight: 600;
-    text-transform: uppercase;
+    transform: scale(1.1);
 }
 
-.sign-type.fingerspell {
-    background: #ff9800;
-}
-
-/* ============================================
-   FOOTER
-============================================ */
+/* ============================================ */
+/* FOOTER                                         */
+/* ============================================ */
 footer {
-    background: white;
-    padding: 20px;
-    border-radius: 15px;
     text-align: center;
-    margin-top: 30px;
-    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
-}
-
-footer p {
-    color: #666;
-    margin: 5px 0;
-}
-
-.footer-note {
-    font-size: 0.9em;
-    color: #999;
-}
-
-/* ============================================
-   RESPONSIVE DESIGN
-============================================ */
-@media (max-width: 768px) {
-    body {
-        padding: 10px;
-    }
-
-    h1 {
-        font-size: 1.8em;
-    }
-
-    .subtitle {
-        font-size: 1em;
-    }
-
-    .main-content {
-        grid-template-columns: 1fr;
-    }
-
-    .stats {
-        grid-template-columns: 1fr;
-    }
-
-    .language-selector {
-        flex-direction: column;
-    }
-
-    .lang-btn {
-        width: 100%;
-    }
-
-    .controls {
-        flex-direction: column;
-    }
-
-    .card {
-        padding: 20px;
-    }
-
-    .video-player {
-        min-height: 200px;
-    }
-}
-
-@media (max-width: 480px) {
-    h1 {
-        font-size: 1.5em;
-    }
-
-    .card h2 {
-        font-size: 1.2em;
-    }
-
-    textarea {
-        font-size: 1em;
-        min-height: 120px;
-    }
-
-    .translate-btn {
-        font-size: 1em;
-        padding: 12px;
-    }
-
-    .stat-value {
-        font-size: 2em;
-    }
-}
-
-/* ============================================
-   ANIMATIONS
-============================================ */
-@keyframes pulse {
-    0%, 100% {
-        transform: scale(1);
-    }
-    50% {
-        transform: scale(1.05);
-    }
-}
-
-.translate-btn.translating {
-    animation: pulse 1.5s ease-in-out infinite;
-}
-
-/* ============================================
-   UTILITY CLASSES
-============================================ */
-.hidden {
-    display: none !important;
-}
-
-.visible {
-    display: block !important;
-}
-
-.text-center {
-    text-align: center;
-}
-
-.mt-10 {
-    margin-top: 10px;
-}
-
-.mt-20 {
-    margin-top: 20px;
-}
-
-.mb-10 {
-    margin-bottom: 10px;
-}
-
-.mb-20 {
-    margin-bottom: 20px;
+    margin-top: 40px;
+    font-size: 0.85em;
+    color: #888;
 }
