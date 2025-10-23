@@ -1,9 +1,9 @@
 """
 File: app.py
-Description: Main Flask application for Sign Language Translation System with Emoji ISL
+Description: Flask backend for Sign Language Translation System (Video + JSON)
 """
 
-from flask import Flask, request, jsonify, render_template
+from flask import Flask, request, jsonify, render_template, send_from_directory
 from flask_cors import CORS
 from sign_language_system import SignLanguageTranslationSystem
 import os
@@ -11,115 +11,93 @@ import os
 app = Flask(__name__)
 CORS(app)
 
-# Initialize the translation system
+# Initialize translation system
 translator = SignLanguageTranslationSystem()
+
+# ---------------------------
+# ROUTES
+# ---------------------------
 
 @app.route('/')
 def index():
-    """Serve main page"""
+    """Serve main webpage"""
     return render_template('index.html')
 
 
 @app.route('/api/translate', methods=['POST'])
-def translate():
+def api_translate():
     """
-    Translate text to sign language (emoji-based)
-    
-    Request body:
-    {
-        "text": "Hello, how are you?",
-        "language": "en"  # optional: en, hi, mr
-    }
+    Translate input text into sign language (returns video file info in JSON)
+    Example Request:
+        { "text": "hello how are you" }
     """
     try:
         data = request.get_json()
-        
         if not data or 'text' not in data:
-            return jsonify({
-                'status': 'error',
-                'error': 'No text provided'
-            }), 400
-        
+            return jsonify({"status": "error", "error": "Missing 'text' in request"}), 400
+
         text = data['text']
         result = translator.process_request(text)
-        
         return jsonify(result), 200
-        
+
     except Exception as e:
-        return jsonify({
-            'status': 'error',
-            'error': str(e)
-        }), 500
+        return jsonify({"status": "error", "error": str(e)}), 500
 
 
 @app.route('/api/dictionary', methods=['GET'])
-def get_dictionary():
-    """Get available words in dictionary"""
-    dictionary = translator.translator.dictionary.word_to_sign
+def api_dictionary():
+    """Return available words and mapped video files"""
+    words = translator.translator.dictionary.word_to_sign
     return jsonify({
-        'total_words': len(dictionary),
-        'languages': ['en', 'hi', 'mr'],
-        'categories': ['greetings', 'numbers', 'common_phrases', 'alphabets', 'emojis'],
-        'words': list(dictionary.keys())
+        "status": "success",
+        "total_words": len(words),
+        "words": list(words.keys())
     })
 
 
-@app.route('/api/signs/<word>', methods=['GET'])
-def get_sign_info(word):
-    """Get detailed information about a specific sign"""
+@app.route('/api/sign/<word>', methods=['GET'])
+def api_sign(word):
+    """Return sign (video) info for a specific word"""
     sign = translator.translator.dictionary.get_sign(word)
-    
     if sign:
-        return jsonify({
-            'word': word,
-            'sign_id': sign.get('sign_id', 'FS'),
-            'emoji': sign.get('emoji', '🤟'),
-            'description': f'Sign for {word}',
-            'category': 'general'
-        })
+        return jsonify({"word": word, "video_path": sign["path"], "status": "success"}), 200
     else:
-        # Fingerspelling fallback
-        fingerspelled = translator.translator.dictionary.fingerspell(word)
-        return jsonify({
-            'word': word,
-            'type': 'fingerspell',
-            'sequence': fingerspelled,
-            'description': f'Fingerspelling for {word}'
-        }), 404
+        return jsonify({"word": word, "status": "not_found"}), 404
+
+
+@app.route('/static/videos/<path:filename>')
+def serve_video(filename):
+    """Serve video files from static/videos"""
+    return send_from_directory("static/videos", filename)
 
 
 @app.route('/api/health', methods=['GET'])
 def health_check():
-    """Health check endpoint"""
+    """Check API health"""
     return jsonify({
-        'status': 'healthy',
-        'service': 'Emoji ISL Translation API',
-        'version': '1.0.0',
-        'dictionary_size': len(translator.translator.dictionary.word_to_sign)
+        "status": "healthy",
+        "service": "Sign Language Translator",
+        "video_count": len(translator.translator.dictionary.word_to_sign)
     })
 
 
+# ---------------------------
+# SERVER STARTUP
+# ---------------------------
 if __name__ == '__main__':
-    # Create necessary directories if they don't exist
-    os.makedirs('static/videos', exist_ok=True)
-    os.makedirs('static/css', exist_ok=True)
-    os.makedirs('static/js', exist_ok=True)
-    os.makedirs('templates', exist_ok=True)
-    
+    os.makedirs("static/videos", exist_ok=True)
+    os.makedirs("static/css", exist_ok=True)
+    os.makedirs("static/js", exist_ok=True)
+
     print("\n" + "="*60)
-    print("🤟 EMOJI-BASED SIGN LANGUAGE TRANSLATION SYSTEM")
+    print("🤟 INDIAN SIGN LANGUAGE TRANSLATOR (Video-based)")
     print("="*60)
-    print("\n✅ Server starting...")
-    print("📍 Open your browser and go to: http://localhost:5000")
-    print("\n📚 API Endpoints:")
-    print("   • POST /api/translate - Translate text to ISL emojis")
-    print("   • GET  /api/dictionary - View available words")
-    print("   • GET  /api/signs/<word> - Get sign information")
-    print("   • GET  /api/health - Check system health")
-    print("\n💡 Try these test sentences:")
-    print("   • hello how are you")
-    print("   • thank you for help")
-    print("   • नमस्ते धन्यवाद")
-    print("\n" + "="*60 + "\n")
-    
-    app.run(debug=True, host='0.0.0.0', port=5000)
+    print("\n🌐 Visit: http://127.0.0.1:5000")
+    print("📡 API:")
+    print("  POST /api/translate")
+    print("  GET  /api/dictionary")
+    print("  GET  /api/sign/<word>")
+    print("  GET  /api/health")
+    print("="*60 + "\n")
+
+    app.run(debug=True, host="0.0.0.0", port=5000)
