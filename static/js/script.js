@@ -1,118 +1,179 @@
-let currentLanguage = 'en';
+// -------------------------------
+// Sign Language Translator - Video Version
+// -------------------------------
+
+let currentIndex = 0;
 let signSequence = [];
 let isPlaying = false;
-let animationInterval = null;
-let currentSignIndex = 0;
+let videoPlayer;
 
-document.addEventListener('DOMContentLoaded', function() {
-    initializeLanguageButtons();
-    initializeTextArea();
-});
+// DOM elements
+const inputText = document.getElementById("inputText");
+const videoPlayerContainer = document.getElementById("videoPlayer");
+const signSequenceDiv = document.getElementById("signSequence");
+const wordCount = document.getElementById("wordCount");
+const signCount = document.getElementById("signCount");
+const duration = document.getElementById("duration");
+const loadingSpinner = document.getElementById("loadingSpinner");
+const alertBox = document.getElementById("alertBox");
 
-function initializeLanguageButtons() {
-    document.querySelectorAll('.lang-btn').forEach(btn => {
-        btn.addEventListener('click', function() {
-            document.querySelectorAll('.lang-btn').forEach(b => b.classList.remove('active'));
-            this.classList.add('active');
-            currentLanguage = this.dataset.lang;
-            updatePlaceholder();
-        });
-    });
-}
-
-function updatePlaceholder() {
-    const placeholders = {
-        'en': 'Type your message here... (e.g., Hello, how are you?)',
-        'hi': 'अपना संदेश यहाँ लिखें... (जैसे, नमस्ते, आप कैसे हैं?)',
-        'mr': 'तुमचा संदेश येथे लिहा... (उदा., नमस्कार, तुम्ही कसे आहात?)'
-    };
-    document.getElementById('inputText').placeholder = placeholders[currentLanguage];
-}
-
-function initializeTextArea() {
-    const textarea = document.getElementById('inputText');
-    const charCount = document.getElementById('charCount');
-    textarea.addEventListener('input', function() {
-        charCount.textContent = this.value.length;
-    });
-}
-
-function showAlert(message, type='success') {
-    const alertBox = document.getElementById('alertBox');
-    alertBox.textContent = message;
-    alertBox.className = `alert ${type} active`;
-    setTimeout(() => alertBox.classList.remove('active'), 5000);
-}
-
-async function translateText() {
-    const text = document.getElementById('inputText').value.trim();
-    if (!text) return showAlert('Please enter text', 'error');
-
-    showLoading(true);
-    try {
-        const res = await fetch('/api/translate', {
-            method: 'POST',
-            headers: {'Content-Type':'application/json'},
-            body: JSON.stringify({text: text, language: currentLanguage})
-        });
-        const data = await res.json();
-        if (data.status === 'success') {
-            signSequence = data.sign_sequence;
-            displaySignSequence();
-            updateStats();
-            showAlert('Translation successful!', 'success');
-        } else showAlert(data.error || 'Translation failed', 'error');
-    } catch(e) {
-        showAlert(e.message, 'error');
-    } finally { showLoading(false); }
+// -------------------------------
+// Helper Functions
+// -------------------------------
+function showAlert(message, type = "info") {
+  alertBox.innerText = message;
+  alertBox.className = `alert ${type}`;
+  alertBox.style.display = "block";
+  setTimeout(() => (alertBox.style.display = "none"), 3000);
 }
 
 function showLoading(show) {
-    const spinner = document.getElementById('loadingSpinner');
-    const btn = document.querySelector('.translate-btn');
-    spinner.classList.toggle('active', show);
-    btn.disabled = show;
+  loadingSpinner.style.display = show ? "flex" : "none";
 }
 
-function displaySignSequence() {
-    const container = document.getElementById('signSequence');
-    if (!signSequence.length) {
-        container.innerHTML = `<div class="empty-state">📝 Enter text above to start</div>`;
-        return;
-    }
-    container.innerHTML = '';
-    signSequence.forEach((sign, idx) => {
-        const div = document.createElement('div');
-        div.className = 'sign-item';
-        div.innerHTML = `${idx+1}. <b>${sign.word}</b> - ${sign.type==='sign'?sign.data.emoji:'✋'}`;
-        container.appendChild(div);
+// -------------------------------
+// API Request
+// -------------------------------
+async function translateText() {
+  const text = inputText.value.trim();
+  if (!text) {
+    showAlert("Please enter text before translating.", "error");
+    return;
+  }
+
+  showLoading(true);
+  stopAnimation();
+
+  try {
+    const response = await fetch("/translate", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ text }),
     });
+
+    const data = await response.json();
+    showLoading(false);
+
+    if (data.status !== "success") {
+      showAlert("Translation failed: " + data.error, "error");
+      return;
+    }
+
+    signSequence = data.sign_sequence || [];
+    updateSignSequenceUI(signSequence);
+
+    signCount.innerText = signSequence.length;
+    wordCount.innerText = text.split(" ").length;
+    duration.innerText = `${Math.round(data.animation.estimated_duration)}s`;
+
+    if (signSequence.length > 0) {
+      loadVideo(signSequence[0].video_url);
+    }
+  } catch (err) {
+    showLoading(false);
+    showAlert("Error: " + err.message, "error");
+  }
 }
 
-function updateStats() {
-    document.getElementById('signCount').textContent = signSequence.length;
-    document.getElementById('wordCount').textContent = signSequence.length;
-    document.getElementById('duration').textContent = (signSequence.length*2.5).toFixed(1)+'s';
+// -------------------------------
+// UI Rendering
+// -------------------------------
+function updateSignSequenceUI(sequence) {
+  signSequenceDiv.innerHTML = "";
+
+  if (!sequence.length) {
+    signSequenceDiv.innerHTML = `
+      <div class="empty-state">
+        <span class="empty-icon">📝</span>
+        <p>No signs found. Try another phrase!</p>
+      </div>`;
+    return;
+  }
+
+  sequence.forEach((sign, idx) => {
+    const div = document.createElement("div");
+    div.className = "sign-item";
+    div.innerHTML = `
+      <span class="sign-word">${sign.word || sign.letter}</span>
+      <span class="sign-type">${sign.type}</span>`;
+    div.onclick = () => {
+      currentIndex = idx;
+      loadVideo(sign.video_url);
+    };
+    signSequenceDiv.appendChild(div);
+  });
+}
+
+// -------------------------------
+// Video Controls
+// -------------------------------
+function loadVideo(videoUrl) {
+  if (!videoUrl) {
+    videoPlayerContainer.innerHTML = `
+      <div class="placeholder-content">
+        <span class="placeholder-icon">⚠️</span>
+        <p>Video not available</p>
+      </div>`;
+    return;
+  }
+
+  videoPlayerContainer.innerHTML = `
+    <video id="videoElement" width="100%" height="auto" autoplay muted>
+      <source src="${videoUrl}" type="video/mp4">
+      Your browser does not support video playback.
+    </video>`;
+
+  videoPlayer = document.getElementById("videoElement");
+  videoPlayer.onended = handleVideoEnd;
 }
 
 function playAnimation() {
-    if (!signSequence.length) return showAlert('Translate text first', 'error');
-    if (isPlaying) return showAlert('Animation already playing', 'error');
-    isPlaying = true; currentSignIndex = 0;
-    const player = document.getElementById('videoPlayer');
+  if (!signSequence.length) {
+    showAlert("Please translate text first.", "error");
+    return;
+  }
 
-    animationInterval = setInterval(()=>{
-        if(currentSignIndex>=signSequence.length){stopAnimation(); return;}
-        const sign = signSequence[currentSignIndex];
-        player.innerHTML = `<div style="font-size:5em;">${sign.type==='sign'?sign.data.emoji:'✋'}</div>
-                            <div style="font-size:2em;">${sign.word.toUpperCase()}</div>
-                            <div style="color:#888;">Sign ${currentSignIndex+1} of ${signSequence.length}</div>`;
-        currentSignIndex++;
-    },2500);
-    showAlert('Playing animation','success');
+  isPlaying = true;
+  playNextVideo();
 }
 
-function pauseAnimation(){isPlaying=false; clearInterval(animationInterval);}
-function stopAnimation(){isPlaying=false; clearInterval(animationInterval); currentSignIndex=0;
-document.getElementById('videoPlayer').innerHTML=`<div>🤟 Animation stopped</div>`;}
+function pauseAnimation() {
+  if (videoPlayer) videoPlayer.pause();
+  isPlaying = false;
+}
 
+function stopAnimation() {
+  if (videoPlayer) {
+    videoPlayer.pause();
+    videoPlayer.currentTime = 0;
+  }
+  isPlaying = false;
+  currentIndex = 0;
+}
+
+function handleVideoEnd() {
+  if (isPlaying) {
+    currentIndex++;
+    if (currentIndex < signSequence.length) {
+      loadVideo(signSequence[currentIndex].video_url);
+    } else {
+      stopAnimation();
+      showAlert("✅ Translation playback finished!", "success");
+    }
+  }
+}
+
+function playNextVideo() {
+  if (currentIndex < signSequence.length) {
+    loadVideo(signSequence[currentIndex].video_url);
+  } else {
+    stopAnimation();
+  }
+}
+
+// -------------------------------
+// Character Counter
+// -------------------------------
+inputText.addEventListener("input", () => {
+  document.getElementById("charCount").innerText = inputText.value.length;
+});
