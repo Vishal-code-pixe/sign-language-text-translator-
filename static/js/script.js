@@ -1,5 +1,5 @@
 // -------------------------------
-// Sign Language Translator - Video Version
+// Sign Language Translator - Video Version (Updated)
 // -------------------------------
 
 let currentIndex = 0;
@@ -45,17 +45,26 @@ async function translateText() {
   stopAnimation();
 
   try {
-    const response = await fetch("/translate", {
+    // ✅ Corrected API route
+    const response = await fetch("/api/translate", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ text }),
     });
 
+    // ✅ Ensure server returned JSON (not HTML error)
+    const contentType = response.headers.get("content-type");
+    if (!contentType || !contentType.includes("application/json")) {
+      const textResponse = await response.text();
+      console.error("❌ Server returned non-JSON:", textResponse);
+      throw new Error("Server returned invalid JSON response. Check Flask route.");
+    }
+
     const data = await response.json();
     showLoading(false);
 
     if (data.status !== "success") {
-      showAlert("Translation failed: " + data.error, "error");
+      showAlert("Translation failed: " + (data.error || "Unknown error"), "error");
       return;
     }
 
@@ -64,13 +73,16 @@ async function translateText() {
 
     signCount.innerText = signSequence.length;
     wordCount.innerText = text.split(" ").length;
-    duration.innerText = `${Math.round(data.animation.estimated_duration)}s`;
+    duration.innerText = `${Math.round(data.animation?.estimated_duration || 0)}s`;
 
     if (signSequence.length > 0) {
       loadVideo(signSequence[0].video_url);
+    } else {
+      showAlert("No signs found for the entered text.", "warning");
     }
   } catch (err) {
     showLoading(false);
+    console.error("⚠️ Translation Error:", err);
     showAlert("Error: " + err.message, "error");
   }
 }
@@ -95,7 +107,7 @@ function updateSignSequenceUI(sequence) {
     div.className = "sign-item";
     div.innerHTML = `
       <span class="sign-word">${sign.word || sign.letter}</span>
-      <span class="sign-type">${sign.type}</span>`;
+      <span class="sign-type">${sign.type || "video"}</span>`;
     div.onclick = () => {
       currentIndex = idx;
       loadVideo(sign.video_url);
