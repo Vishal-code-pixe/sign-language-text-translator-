@@ -1,11 +1,15 @@
 """
-Sign Language Translation System - Video Version
-(Uses actual .mp4 sign language clips instead of emojis)
+Sign Language Translation System - Flask Video Version
+(Uses actual .mp4 sign language clips from static/videos/)
 """
 
 import os
 from typing import List, Dict
 
+
+# ---------------------------------
+# TEXT PREPROCESSING
+# ---------------------------------
 class TextPreprocessor:
     def __init__(self):
         self.supported_languages = ['en', 'hi', 'mr']
@@ -17,20 +21,23 @@ class TextPreprocessor:
 
     def normalize_text(self, text: str) -> str:
         import string
-        text = text.strip().lower()
-        return text.translate(str.maketrans('', '', string.punctuation))
+        return text.strip().lower().translate(str.maketrans('', '', string.punctuation))
 
     def tokenize(self, text: str) -> List[str]:
         return text.split()
 
+
+# ---------------------------------
+# SIGN LANGUAGE DICTIONARY
+# ---------------------------------
 class SignLanguageDictionary:
     def __init__(self):
+        self.base_path = "static/videos"
         self.word_to_sign = self.load_dictionary()
 
     def load_dictionary(self):
         """
-        Maps words to corresponding sign language video filenames (.mp4)
-        All videos should be stored inside: static/videos/
+        Maps words to corresponding sign language .mp4 filenames
         """
         return {
             # Greetings
@@ -41,7 +48,7 @@ class SignLanguageDictionary:
             'good morning': 'good_morning.mp4',
             'good night': 'good_night.mp4',
 
-            # Gratitude / Politeness
+            # Gratitude
             'thank': 'thank_you.mp4',
             'thanks': 'thank_you.mp4',
             'धन्यवाद': 'thank_you.mp4',
@@ -70,63 +77,43 @@ class SignLanguageDictionary:
             'love': 'love.mp4',
             'excited': 'excited.mp4',
 
-            # Common questions
+            # Questions
             'what': 'what.mp4',
             'where': 'where.mp4',
             'when': 'when.mp4',
             'who': 'who.mp4',
             'how': 'how.mp4',
-
-            # Numbers
-            'one': '1.mp4',
-            'two': '2.mp4',
-            'three': '3.mp4',
-            'four': '4.mp4',
-            'five': '5.mp4',
-            'six': '6.mp4',
-            'seven': '7.mp4',
-            'eight': '8.mp4',
-            'nine': '9.mp4',
-            'ten': '10.mp4',
-
-            # Objects
-            'food': 'food.mp4',
-            'water': 'water.mp4',
-            'house': 'house.mp4',
-            'car': 'car.mp4',
-            'book': 'book.mp4',
-            'school': 'school.mp4',
-            'work': 'work.mp4',
-            'sleep': 'sleep.mp4',
-            'play': 'play.mp4',
-
-            # Family
-            'mother': 'mother.mp4',
-            'father': 'father.mp4',
-            'brother': 'brother.mp4',
-            'sister': 'sister.mp4',
-            'child': 'child.mp4',
         }
 
     def get_sign(self, word: str):
         filename = self.word_to_sign.get(word.lower())
         if filename:
+            video_url = f"/static/videos/{filename}"
             return {
-                'file': filename,
-                'path': f'static/videos/{filename}'
+                'sign_id': f"ISL_{word.upper()}",
+                'video_url': video_url,
+                'exists': os.path.exists(os.path.join(self.base_path, filename))
             }
         return None
 
     def fingerspell(self, word: str) -> List[Dict]:
         """
-        Fallback for unknown words: creates letter-by-letter signs.
+        Fallback for unknown words (returns letter placeholders)
         """
         return [
-            {'letter': c.upper(), 'file': f'{c.upper()}.mp4',
-             'path': f'static/videos/{c.upper()}.mp4'}
+            {
+                'letter': c.upper(),
+                'sign_id': f'FS_{c.upper()}',
+                'video_url': f"/static/videos/{c.upper()}.mp4",
+                'exists': os.path.exists(os.path.join(self.base_path, f"{c.upper()}.mp4"))
+            }
             for c in word if c.isalpha()
         ]
 
+
+# ---------------------------------
+# TRANSLATION SYSTEM
+# ---------------------------------
 class SignLanguageTranslator:
     def __init__(self):
         self.preprocessor = TextPreprocessor()
@@ -146,27 +133,41 @@ class SignLanguageTranslator:
         sign_sequence = []
         for token in tokens:
             sign = self.dictionary.get_sign(token)
-            if sign:
-                sign_sequence.append({'word': token, 'type': 'sign', 'data': sign})
+            if sign and sign['exists']:
+                sign_sequence.append({
+                    'word': token,
+                    'type': 'sign',
+                    'video_url': sign['video_url']
+                })
             else:
-                sign_sequence.append({'word': token, 'type': 'fingerspell',
-                                      'data': self.dictionary.fingerspell(token)})
+                # fallback to fingerspelling
+                letters = self.dictionary.fingerspell(token)
+                sign_sequence.append({
+                    'word': token,
+                    'type': 'fingerspell',
+                    'letters': letters
+                })
+
         return sign_sequence
 
+
+# ---------------------------------
+# MAIN SYSTEM WRAPPER
+# ---------------------------------
 class SignLanguageTranslationSystem:
     def __init__(self):
         self.translator = SignLanguageTranslator()
 
     def process_request(self, text: str) -> Dict:
         try:
-            seq = self.translator.translate(text)
+            sequence = self.translator.translate(text)
             return {
                 'status': 'success',
                 'input_text': text,
-                'sign_sequence': seq,
+                'sign_sequence': sequence,
                 'animation': {
-                    'total_signs': len(seq),
-                    'estimated_duration': len(seq) * 2.5
+                    'total_signs': len(sequence),
+                    'estimated_duration': len(sequence) * 2.5
                 }
             }
         except Exception as e:
