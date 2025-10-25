@@ -1,7 +1,7 @@
 """
 File: app.py
 Description: Flask-based Sign Language Translator using ISL Videos
-Updated: Fixed 'Video not available' issue and added better API structure
+Updated: Fixed Windows path issue and 'Video not available' error
 """
 
 from flask import Flask, request, jsonify, render_template
@@ -12,7 +12,7 @@ import os
 app = Flask(__name__)
 CORS(app)
 
-# Initialize the translation system
+# Initialize translation system
 translator = SignLanguageTranslationSystem()
 
 
@@ -29,12 +29,7 @@ def index():
 @app.route('/api/translate', methods=['POST'])
 def translate():
     """
-    Translate input text into sign language (video version)
-    
-    Request body:
-    {
-        "text": "hello how are you"
-    }
+    Translate input text into ISL video sequence.
     """
     try:
         data = request.get_json()
@@ -51,8 +46,11 @@ def translate():
         for item in result.get("sign_sequence", []):
             if item["type"] == "sign":
                 video_path = item["data"].get("path")
+
                 if video_path and os.path.exists(video_path):
-                    item["video_url"] = f"/{video_path.replace('\\', '/')}"  # for Windows paths
+                    # Fix backslashes for Windows paths
+                    fixed_path = video_path.replace("\\", "/")
+                    item["video_url"] = f"/{fixed_path}"
                 else:
                     item["video_url"] = None
             else:
@@ -69,7 +67,7 @@ def translate():
 
 @app.route('/api/dictionary', methods=['GET'])
 def get_dictionary():
-    """Return a list of available ISL words"""
+    """Return available ISL words"""
     dictionary = translator.translator.dictionary.word_to_sign
     return jsonify({
         'total_words': len(dictionary),
@@ -81,13 +79,14 @@ def get_dictionary():
 
 @app.route('/api/signs/<word>', methods=['GET'])
 def get_sign_info(word):
-    """Return information about a specific sign"""
+    """Return video information for a specific word"""
     sign = translator.translator.dictionary.get_sign(word)
     if sign:
         video_path = sign.get('path')
+        fixed_path = video_path.replace("\\", "/")
         return jsonify({
             'word': word,
-            'video_url': f"/{video_path}",
+            'video_url': f"/{fixed_path}",
             'description': f"ISL video sign for '{word}'"
         })
     else:
@@ -99,36 +98,36 @@ def get_sign_info(word):
 
 @app.route('/api/health', methods=['GET'])
 def health_check():
-    """Basic health check"""
+    """Simple health check"""
     return jsonify({
         'status': 'healthy',
         'service': 'ISL Video Translation API',
-        'version': '2.0',
+        'version': '2.1',
         'dictionary_size': len(translator.translator.dictionary.word_to_sign)
     })
 
 
 # ================================
-# STARTUP
+# SERVER STARTUP
 # ================================
 
 if __name__ == '__main__':
+    # Ensure required folders exist
     os.makedirs('static/videos', exist_ok=True)
     os.makedirs('static/css', exist_ok=True)
     os.makedirs('static/js', exist_ok=True)
     os.makedirs('templates', exist_ok=True)
 
-    print("\n" + "="*65)
-    print("🤟 ISL SIGN LANGUAGE TRANSLATION SYSTEM (VIDEO VERSION)")
-    print("="*65)
-    print("\n✅ Flask server starting...")
+    print("\n" + "="*70)
+    print("🤟 INDIAN SIGN LANGUAGE TRANSLATOR (VIDEO VERSION)")
+    print("="*70)
+    print("\n✅ Flask server is starting...")
     print("📍 URL: http://127.0.0.1:5000")
-    print("\n📽 Example test:")
-    print("   → hello")
-    print("   → thank you")
-    print("   → please help me")
-    print("\n🗂 Videos must be inside: static/videos/")
-    print("="*65 + "\n")
+    print("\n📽 Try these examples:")
+    print("   • hello")
+    print("   • thank you")
+    print("   • please help me")
+    print("\n📂 Ensure your video files are stored in: static/videos/")
+    print("="*70 + "\n")
 
     app.run(debug=True, host='0.0.0.0', port=5000)
-
