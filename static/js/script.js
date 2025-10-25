@@ -1,152 +1,103 @@
-// -------------------------------
-// Sign Language Translator - Video Version (Updated)
-// -------------------------------
+/*
+ * Modern Sign Language Translator Frontend
+ * By Vishal's Project ✨
+ */
 
-let currentIndex = 0;
 let signSequence = [];
+let currentIndex = 0;
 let isPlaying = false;
-let videoPlayer;
+let videoPlayer = null;
 
 // DOM elements
-const inputText = document.getElementById("inputText");
-const videoPlayerContainer = document.getElementById("videoPlayer");
+const videoContainer = document.getElementById("videoPlayer");
 const signSequenceDiv = document.getElementById("signSequence");
-const wordCount = document.getElementById("wordCount");
+const inputText = document.getElementById("inputText");
 const signCount = document.getElementById("signCount");
+const wordCount = document.getElementById("wordCount");
 const duration = document.getElementById("duration");
-const loadingSpinner = document.getElementById("loadingSpinner");
-const alertBox = document.getElementById("alertBox");
 
-// -------------------------------
-// Helper Functions
-// -------------------------------
+// =================== ALERTS ===================
 function showAlert(message, type = "info") {
-  alertBox.innerText = message;
-  alertBox.className = `alert ${type}`;
-  alertBox.style.display = "block";
-  setTimeout(() => (alertBox.style.display = "none"), 3000);
+  const alert = document.createElement("div");
+  alert.className = `popup-alert ${type}`;
+  alert.innerText = message;
+  document.body.appendChild(alert);
+  setTimeout(() => alert.classList.add("show"), 50);
+  setTimeout(() => {
+    alert.classList.remove("show");
+    setTimeout(() => alert.remove(), 500);
+  }, 3000);
 }
 
-function showLoading(show) {
-  loadingSpinner.style.display = show ? "flex" : "none";
-}
-
-// -------------------------------
-// API Request
-// -------------------------------
+// =================== TRANSLATION ===================
 async function translateText() {
   const text = inputText.value.trim();
-  if (!text) {
-    showAlert("Please enter text before translating.", "error");
-    return;
-  }
+  if (!text) return showAlert("⚠️ Enter text before translating", "error");
 
-  showLoading(true);
   stopAnimation();
+  videoContainer.innerHTML = `<div class="loading"><div class="spinner"></div><p>Translating...</p></div>`;
 
-  try {
-    // ✅ Corrected API route
-    const response = await fetch("/api/translate", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ text }),
-    });
-
-    // ✅ Ensure server returned JSON (not HTML error)
-    const contentType = response.headers.get("content-type");
-    if (!contentType || !contentType.includes("application/json")) {
-      const textResponse = await response.text();
-      console.error("❌ Server returned non-JSON:", textResponse);
-      throw new Error("Server returned invalid JSON response. Check Flask route.");
-    }
-
-    const data = await response.json();
-    showLoading(false);
-
-    if (data.status !== "success") {
-      showAlert("Translation failed: " + (data.error || "Unknown error"), "error");
-      return;
-    }
-
-    signSequence = data.sign_sequence || [];
-    updateSignSequenceUI(signSequence);
-
-    signCount.innerText = signSequence.length;
-    wordCount.innerText = text.split(" ").length;
-    duration.innerText = `${Math.round(data.animation?.estimated_duration || 0)}s`;
-
-    if (signSequence.length > 0) {
-      loadVideo(signSequence[0].video_url);
-    } else {
-      showAlert("No signs found for the entered text.", "warning");
-    }
-  } catch (err) {
-    showLoading(false);
-    console.error("⚠️ Translation Error:", err);
-    showAlert("Error: " + err.message, "error");
-  }
-}
-
-// -------------------------------
-// UI Rendering
-// -------------------------------
-function updateSignSequenceUI(sequence) {
-  signSequenceDiv.innerHTML = "";
-
-  if (!sequence.length) {
-    signSequenceDiv.innerHTML = `
-      <div class="empty-state">
-        <span class="empty-icon">📝</span>
-        <p>No signs found. Try another phrase!</p>
-      </div>`;
-    return;
-  }
-
-  sequence.forEach((sign, idx) => {
-    const div = document.createElement("div");
-    div.className = "sign-item";
-    div.innerHTML = `
-      <span class="sign-word">${sign.word || sign.letter}</span>
-      <span class="sign-type">${sign.type || "video"}</span>`;
-    div.onclick = () => {
-      currentIndex = idx;
-      loadVideo(sign.video_url);
-    };
-    signSequenceDiv.appendChild(div);
+  const res = await fetch("/api/translate", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ text }),
   });
+  const data = await res.json();
+
+  if (data.status !== "success") return showAlert("❌ " + data.error, "error");
+
+  signSequence = data.sign_sequence || [];
+  signCount.innerText = signSequence.length;
+  wordCount.innerText = text.split(" ").length;
+  duration.innerText = `${Math.round(data.animation.estimated_duration)}s`;
+  updateSequenceUI();
+  showAlert("✅ Translation ready!", "success");
+
+  if (signSequence.length) loadVideo(signSequence[0]);
 }
 
-// -------------------------------
-// Video Controls
-// -------------------------------
-function loadVideo(videoUrl) {
-  if (!videoUrl) {
-    videoPlayerContainer.innerHTML = `
-      <div class="placeholder-content">
-        <span class="placeholder-icon">⚠️</span>
-        <p>Video not available</p>
-      </div>`;
+// =================== VIDEO HANDLING ===================
+function loadVideo(sign) {
+  if (!sign?.data?.path) {
+    videoContainer.innerHTML = `<div class="placeholder"><span>⚠️</span><p>Video not available</p></div>`;
     return;
   }
 
-  videoPlayerContainer.innerHTML = `
-    <video id="videoElement" width="100%" height="auto" autoplay muted>
-      <source src="${videoUrl}" type="video/mp4">
-      Your browser does not support video playback.
-    </video>`;
+  videoContainer.innerHTML = `
+    <video id="videoElement" autoplay muted playsinline>
+      <source src="/${sign.data.path}" type="video/mp4">
+    </video>
+    <div id="progressBar"></div>
+  `;
 
   videoPlayer = document.getElementById("videoElement");
+  const progressBar = document.getElementById("progressBar");
+
+  videoPlayer.ontimeupdate = () => {
+    const p = (videoPlayer.currentTime / videoPlayer.duration) * 100;
+    progressBar.style.width = p + "%";
+  };
   videoPlayer.onended = handleVideoEnd;
 }
 
-function playAnimation() {
-  if (!signSequence.length) {
-    showAlert("Please translate text first.", "error");
-    return;
+function handleVideoEnd() {
+  if (isPlaying) {
+    currentIndex++;
+    if (currentIndex < signSequence.length) {
+      highlightSign(currentIndex);
+      loadVideo(signSequence[currentIndex]);
+    } else {
+      stopAnimation();
+      showAlert("✅ Animation finished!", "success");
+    }
   }
+}
 
+function playAnimation() {
+  if (!signSequence.length) return showAlert("⚠️ Translate text first!", "error");
   isPlaying = true;
-  playNextVideo();
+  highlightSign(currentIndex);
+  loadVideo(signSequence[currentIndex]);
 }
 
 function pauseAnimation() {
@@ -155,37 +106,54 @@ function pauseAnimation() {
 }
 
 function stopAnimation() {
-  if (videoPlayer) {
-    videoPlayer.pause();
-    videoPlayer.currentTime = 0;
-  }
   isPlaying = false;
   currentIndex = 0;
+  if (videoPlayer) videoPlayer.pause();
+  clearHighlights();
 }
 
-function handleVideoEnd() {
-  if (isPlaying) {
-    currentIndex++;
-    if (currentIndex < signSequence.length) {
-      loadVideo(signSequence[currentIndex].video_url);
-    } else {
-      stopAnimation();
-      showAlert("✅ Translation playback finished!", "success");
-    }
-  }
+// =================== SEQUENCE DISPLAY ===================
+function updateSequenceUI() {
+  signSequenceDiv.innerHTML = "";
+  signSequence.forEach((sign, idx) => {
+    const div = document.createElement("div");
+    div.className = "sign-item fade-in";
+    div.innerHTML = `<span>${idx + 1}. ${sign.word}</span>`;
+    signSequenceDiv.appendChild(div);
+  });
 }
 
-function playNextVideo() {
-  if (currentIndex < signSequence.length) {
-    loadVideo(signSequence[currentIndex].video_url);
+function highlightSign(i) {
+  clearHighlights();
+  const items = document.querySelectorAll(".sign-item");
+  if (items[i]) items[i].classList.add("highlight");
+}
+
+function clearHighlights() {
+  document.querySelectorAll(".sign-item").forEach(i => i.classList.remove("highlight"));
+}
+
+function clearInput() {
+  inputText.value = "";
+  signSequenceDiv.innerHTML = "<p class='empty'>Cleared input.</p>";
+}
+
+// =================== THEME TOGGLE ===================
+const themeSwitch = document.getElementById("themeSwitch");
+const saved = localStorage.getItem("theme");
+if (saved === "light") {
+  document.body.classList.add("light-mode");
+  themeSwitch.checked = true;
+}
+
+themeSwitch.addEventListener("change", () => {
+  if (themeSwitch.checked) {
+    document.body.classList.add("light-mode");
+    localStorage.setItem("theme", "light");
+    showAlert("🌞 Light mode enabled", "info");
   } else {
-    stopAnimation();
+    document.body.classList.remove("light-mode");
+    localStorage.setItem("theme", "dark");
+    showAlert("🌙 Dark mode enabled", "info");
   }
-}
-
-// -------------------------------
-// Character Counter
-// -------------------------------
-inputText.addEventListener("input", () => {
-  document.getElementById("charCount").innerText = inputText.value.length;
 });
