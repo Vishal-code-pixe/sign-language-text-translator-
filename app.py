@@ -1,4 +1,3 @@
-
 """
 File: app.py
 Description: Flask backend for Sign Language Translation System (Video + JSON)
@@ -33,15 +32,43 @@ def api_translate():
         { "text": "hello how are you" }
     """
     try:
-        data = request.get_json()
+        # safer parsing
+        data = request.get_json(silent=True)
         if not data or 'text' not in data:
             return jsonify({"status": "error", "error": "Missing 'text' in request"}), 400
 
-        text = data['text']
+        text = data['text'].strip()
+        if not text:
+            return jsonify({"status": "error", "error": "Empty text"}), 400
+
         result = translator.process_request(text)
+
+        # Attach standardized video_url to each sign item for frontend
+        for item in result.get("sign_sequence", []):
+            # only for sign entries, not fingerspell
+            if item.get("type") == "sign":
+                data_obj = item.get("data", {})
+                # Some dictionary versions use 'path' or 'file'
+                video_path = data_obj.get("path") or (f"static/videos/{data_obj.get('file')}" if data_obj.get("file") else None)
+                if video_path:
+                    # ensure local file exists before returning URL
+                    # normalize slashes for web
+                    fixed = video_path.replace("\\", "/")
+                    if os.path.exists(video_path) or os.path.exists(fixed.lstrip("/")):
+                        item["video_url"] = f"/{fixed.lstrip('/')}"
+                    else:
+                        # file missing - return None so frontend can handle
+                        item["video_url"] = None
+                else:
+                    item["video_url"] = None
+            else:
+                item["video_url"] = None
+
         return jsonify(result), 200
 
     except Exception as e:
+        # log error to console for debugging
+        print("ERROR in /api/translate:", e)
         return jsonify({"status": "error", "error": str(e)}), 500
 
 
@@ -61,7 +88,12 @@ def api_sign(word):
     """Return sign (video) info for a specific word"""
     sign = translator.translator.dictionary.get_sign(word)
     if sign:
-        return jsonify({"word": word, "video_path": sign["path"], "status": "success"}), 200
+        # normalize and present path as web URL
+        video_path = sign.get("path") or (f"static/videos/{sign.get('file')}" if sign.get('file') else None)
+        if video_path:
+            video_path = video_path.replace("\\", "/")
+            return jsonify({"word": word, "video_path": video_path, "video_url": f"/{video_path.lstrip('/')}", "status": "success"}), 200
+        return jsonify({"word": word, "status": "not_found"}), 404
     else:
         return jsonify({"word": word, "status": "not_found"}), 404
 
