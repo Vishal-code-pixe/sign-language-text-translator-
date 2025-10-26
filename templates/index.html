@@ -1,9 +1,9 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-    <title>Sign Language Translator - Video Version</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sign Language Translator - Emoji Version</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
 </head>
 <body>
@@ -27,7 +27,7 @@
             <textarea id="inputText" placeholder="Type your message here..." rows="8"></textarea>
             <div class="char-count"><span id="charCount">0</span> characters</div>
             <button class="translate-btn" onclick="translateText()">🔄 Translate to Sign Language</button>
-            <div class="loading" id="loadingSpinner" style="display:none;"><div class="spinner"></div><p>Translating...</p></div>
+            <div class="loading" id="loadingSpinner"><div class="spinner"></div><p>Translating...</p></div>
         </div>
 
         <div class="card">
@@ -39,14 +39,14 @@
                 </div>
             </div>
             <div class="controls">
-                <button class="control-btn" onclick="playAnimation()">▶️ Play</button>
-                <button class="control-btn" onclick="pauseAnimation()">⏸️ Pause</button>
-                <button class="control-btn" onclick="stopAnimation()">⏹️ Stop</button>
+                <button onclick="playAnimation()"▶️ Play</button>
+                <button onclick="pauseAnimation()">⏸️ Pause</button>
+                <button onclick="stopAnimation()">⏹️ Stop</button>
             </div>
             <div class="stats">
-                <div class="stat-box"><div class="stat-value" id="signCount">0</div><div class="stat-label">Signs</div></div>
-                <div class="stat-box"><div class="stat-value" id="wordCount">0</div><div class="stat-label">Words</div></div>
-                <div class="stat-box"><div class="stat-value" id="duration">0s</div><div class="stat-label">Duration</div></div>
+                <div class="stat-box"><div id="signCount">0</div>Signs</div>
+                <div class="stat-box"><div id="wordCount">0</div>Words</div>
+                <div class="stat-box"><div id="duration">0s</div>Duration</div>
             </div>
         </div>
     </div>
