@@ -24,13 +24,13 @@ header {
 }
 
 header h1 {
-    font-size: 2.2em;
+    font-size: 2.5em;
     margin: 0;
 }
 
 header .subtitle {
-    font-size: 1.1em;
-    margin: 6px 0;
+    font-size: 1.2em;
+    margin: 5px 0;
     color: #555;
 }
 
@@ -51,7 +51,7 @@ header .tagline {
     text-align: center;
 }
 
-.alert.info { background: #d1ecf1; color: #0c5460; }
+.alert.active { display: block; }
 .alert.success { background: #d4edda; color: #155724; }
 .alert.error { background: #f8d7da; color: #721c24; }
 
@@ -142,6 +142,10 @@ textarea {
     margin-top: 15px;
 }
 
+.loading.active {
+    display: block;
+}
+
 .spinner {
     border: 4px solid #f3f3f3;
     border-top: 4px solid #667eea;
@@ -213,13 +217,13 @@ textarea {
     text-align: center;
 }
 
-.stat-value {
+.stat-box .stat-value {
     font-size: 1.5em;
     font-weight: bold;
     color: #667eea;
 }
 
-.stat-label {
+.stat-box .stat-label {
     font-size: 0.85em;
     color: #555;
 }
