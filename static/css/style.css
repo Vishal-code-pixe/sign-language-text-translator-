@@ -1,268 +1,34 @@
-/* ============================================ */
-/* GLOBAL STYLES                                  */
-/* ============================================ */
-body {
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    background: #f5f7fa;
-    margin: 0;
-    padding: 0;
-    color: #333;
-}
-
-.container {
-    max-width: 1200px;
-    margin: 0 auto;
-    padding: 20px;
-}
-
-/* ============================================ */
-/* HEADER                                         */
-/* ============================================ */
-header {
-    text-align: center;
-    margin-bottom: 30px;
-}
-
-header h1 {
-    font-size: 2.5em;
-    margin: 0;
-}
-
-header .subtitle {
-    font-size: 1.2em;
-    margin: 5px 0;
-    color: #555;
-}
-
-header .tagline {
-    font-size: 0.95em;
-    color: #888;
-}
-
-/* ============================================ */
-/* ALERT BOX                                      */
-/* ============================================ */
-.alert {
-    display: none;
-    padding: 12px 20px;
-    border-radius: 5px;
-    margin-bottom: 20px;
-    font-weight: bold;
-    text-align: center;
-}
-
-.alert.active { display: block; }
-.alert.success { background: #d4edda; color: #155724; }
-.alert.error { background: #f8d7da; color: #721c24; }
-
-/* ============================================ */
-/* MAIN CONTENT GRID                              */
-/* ============================================ */
-.main-content {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 20px;
-}
-
-.card {
-    background: white;
-    padding: 20px;
-    border-radius: 12px;
-    flex: 1;
-    min-width: 300px;
-    box-shadow: 0 4px 15px rgba(0,0,0,0.08);
-}
-
-/* ============================================ */
-/* LANGUAGE SELECTOR                              */
-/* ============================================ */
-.language-selector {
-    display: flex;
-    gap: 10px;
-    margin-bottom: 10px;
-}
-
-.lang-btn {
-    flex: 1;
-    padding: 8px;
-    border: 1px solid #ddd;
-    border-radius: 5px;
-    cursor: pointer;
-    background: #f0f0f0;
-    transition: all 0.2s;
-}
-
-.lang-btn.active, .lang-btn:hover {
-    background: #667eea;
-    color: white;
-    border-color: #667eea;
-}
-
-/* ============================================ */
-/* TEXTAREA & BUTTONS                              */
-/* ============================================ */
-textarea {
-    width: 100%;
-    padding: 12px;
-    border-radius: 8px;
-    border: 1px solid #ccc;
-    font-size: 1em;
-    resize: none;
-}
-
-.translate-btn {
-    margin-top: 12px;
-    padding: 12px 20px;
-    font-size: 1em;
-    border: none;
-    border-radius: 8px;
-    background: #667eea;
-    color: white;
-    cursor: pointer;
-    transition: all 0.2s;
-}
-
-.translate-btn:hover {
-    background: #556cd6;
-}
-
-.char-count {
-    text-align: right;
-    font-size: 0.85em;
-    color: #999;
-    margin-top: 4px;
-}
-
-/* ============================================ */
-/* LOADING SPINNER                                */
-/* ============================================ */
-.loading {
-    display: none;
-    text-align: center;
-    margin-top: 15px;
-}
-
-.loading.active {
-    display: block;
-}
-
-.spinner {
-    border: 4px solid #f3f3f3;
-    border-top: 4px solid #667eea;
-    border-radius: 50%;
-    width: 35px;
-    height: 35px;
-    margin: 0 auto 10px auto;
-    animation: spin 1s linear infinite;
-}
-
-@keyframes spin {
-    0% { transform: rotate(0deg);}
-    100% { transform: rotate(360deg);}
-}
-
-/* ============================================ */
-/* VIDEO / EMOJI DISPLAY                           */
-/* ============================================ */
-.video-player {
-    min-height: 200px;
-    background: #f9f9f9;
-    border: 2px dashed #ccc;
-    border-radius: 12px;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    position: relative;
-    overflow: hidden;
-}
-
-.video-player div {
-    text-align: center;
-}
-
-/* ============================================ */
-/* CONTROLS                                        */
-/* ============================================ */
-.controls {
-    margin-top: 12px;
-    display: flex;
-    gap: 10px;
-}
-
-.control-btn {
-    flex: 1;
-    padding: 10px 0;
-    border: none;
-    border-radius: 8px;
-    background: #667eea;
-    color: white;
-    font-size: 1em;
-    cursor: pointer;
-}
-
-.control-btn:hover {
-    background: #556cd6;
-}
-
-/* ============================================ */
-/* STATS                                          */
-/* ============================================ */
-.stats {
-    display: flex;
-    justify-content: space-around;
-    margin-top: 15px;
-}
-
-.stat-box {
-    text-align: center;
-}
-
-.stat-box .stat-value {
-    font-size: 1.5em;
-    font-weight: bold;
-    color: #667eea;
-}
-
-.stat-box .stat-label {
-    font-size: 0.85em;
-    color: #555;
-}
-
-/* ============================================ */
-/* SIGN SEQUENCE                                   */
-/* ============================================ */
-.sign-sequence {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 10px;
-}
-
-.sign-item {
-    padding: 10px 12px;
-    background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
-    border-radius: 8px;
-    min-width: 80px;
-    text-align: center;
-    font-weight: bold;
-    transition: all 0.3s;
-}
-
-.sign-item.fingerspell {
-    background: linear-gradient(135deg, #ffe0b2 0%, #ffcc80 100%);
-}
-
-.sign-item.highlight {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    color: white;
-    transform: scale(1.1);
-}
-
-/* ============================================ */
-/* FOOTER                                         */
-/* ============================================ */
-footer {
-    text-align: center;
-    margin-top: 40px;
-    font-size: 0.85em;
-    color: #888;
-}
+/* (same CSS you provided, polished) */
+body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f5f7fa; margin:0; padding:0; color:#333; }
+.container { max-width:1200px; margin:0 auto; padding:20px; }
+header { text-align:center; margin-bottom:30px; }
+header h1 { font-size:2.2em; margin:0; }
+.subtitle{ font-size:1.1em; color:#555; margin:6px 0; }
+.tagline{ font-size:.95em; color:#888; }
+.alert{ display:none; padding:12px 20px; border-radius:6px; text-align:center; font-weight:600; }
+.alert.info{ background:#d1ecf1; color:#0c5460; } .alert.success{ background:#d4edda; color:#155724; } .alert.error{ background:#f8d7da; color:#721c24; }
+.main-content{ display:flex; flex-wrap:wrap; gap:20px; }
+.card{ background:#fff; padding:20px; border-radius:12px; flex:1; min-width:300px; box-shadow:0 4px 15px rgba(0,0,0,.08); }
+.language-selector{ display:flex; gap:10px; margin-bottom:10px; }
+.lang-btn{ flex:1; padding:8px; border:1px solid #ddd; border-radius:6px; background:#f0f0f0; cursor:pointer; }
+.lang-btn.active, .lang-btn:hover{ background:#667eea; color:#fff; border-color:#667eea; }
+textarea{ width:100%; padding:12px; border-radius:8px; border:1px solid #ccc; font-size:1em; resize:none; }
+.translate-btn{ margin-top:12px; padding:12px 20px; border:none; border-radius:8px; background:#667eea; color:#fff; cursor:pointer; }
+.translate-btn:hover{ background:#556cd6; }
+.char-count{ text-align:right; font-size:.85em; color:#999; margin-top:4px; }
+.loading{ display:none; text-align:center; margin-top:15px; }
+.spinner{ border:4px solid #f3f3f3; border-top:4px solid #667eea; border-radius:50%; width:35px; height:35px; margin:0 auto 10px; animation:spin 1s linear infinite; }
+@keyframes spin{ 0%{transform:rotate(0);} 100%{transform:rotate(360deg);} }
+.video-player{ min-height:200px; background:#f9f9f9; border:2px dashed #ccc; border-radius:12px; display:flex; align-items:center; justify-content:center; overflow:hidden; }
+.controls{ margin-top:12px; display:flex; gap:10px; }
+.control-btn{ flex:1; padding:10px 0; border:none; border-radius:8px; background:#667eea; color:#fff; cursor:pointer; }
+.control-btn:hover{ background:#556cd6; }
+.stats{ display:flex; justify-content:space-around; margin-top:15px; }
+.stat-box{ text-align:center; }
+.stat-value{ font-size:1.5em; font-weight:bold; color:#667eea; }
+.stat-label{ font-size:.85em; color:#555; }
+.sign-sequence{ display:flex; flex-wrap:wrap; gap:10px; margin-top:12px; }
+.sign-item{ padding:10px 12px; background:linear-gradient(135deg,#f5f7fa 0%,#c3cfe2 100%); border-radius:8px; min-width:80px; text-align:center; font-weight:bold; cursor:pointer; transition:all .2s; }
+.sign-item.fingerspell{ background:linear-gradient(135deg,#ffe0b2 0%,#ffcc80 100%); }
+.sign-item:hover{ transform:translateY(-4px); }
+footer{ text-align:center; margin-top:30px; font-size:.85em; color:#888; }
