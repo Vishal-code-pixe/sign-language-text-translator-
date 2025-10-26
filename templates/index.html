@@ -3,78 +3,75 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>🤟 ISL Sign Language Translator</title>
+  <title>🤟 Sign Language Translator</title>
   <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
 </head>
 <body>
-
-  <div class="main-container">
+  <div class="container">
 
     <!-- HEADER -->
-    <header class="header">
+    <header>
       <h1>🤟 Sign Language Translator</h1>
       <p class="subtitle">English / Hindi / Marathi → Indian Sign Language (ISL)</p>
-
-      <!-- Theme Toggle -->
-      <div class="theme-toggle">
-        <input type="checkbox" id="themeSwitch" />
-        <label for="themeSwitch" class="toggle-label">
-          <span class="sun">🌞</span>
-          <span class="moon">🌙</span>
-        </label>
-      </div>
     </header>
 
+    <!-- ALERT BOX -->
+    <div id="alertBox" class="alert"></div>
+
     <!-- INPUT SECTION -->
-    <div class="card input-card">
+    <section class="card">
       <h2>📝 Enter Text</h2>
-      <textarea id="inputText" placeholder="Type something like 'hello' or 'thank you'..." rows="5"></textarea>
-      <div class="btn-container">
-        <button class="btn translate-btn" onclick="translateText()">⚡ Translate</button>
-        <button class="btn clear-btn" onclick="clearInput()">🧹 Clear</button>
+      <textarea id="inputText" placeholder="Type here..." rows="5"></textarea>
+      <p class="char-count"><span id="charCount">0</span> characters</p>
+      <div class="button-group">
+        <button class="translate-btn" onclick="translateText()">⚡ Translate</button>
+        <button class="clear-btn" onclick="clearInput()">🧹 Clear</button>
       </div>
-    </div>
+      <div id="loadingSpinner" class="loading" style="display:none;">
+        <div class="spinner"></div>
+        <p>Translating...</p>
+      </div>
+    </section>
 
     <!-- VIDEO SECTION -->
-    <div class="card video-card">
+    <section class="card">
       <h2>🎬 Sign Language Animation</h2>
       <div id="videoPlayer" class="video-player">
-        <div class="placeholder">
-          <span>🎞️</span>
-          <p>Translated video will appear here</p>
+        <div class="placeholder-content">
+          <span class="placeholder-icon">🖐️</span>
+          <p>Translation video will appear here</p>
         </div>
       </div>
-
       <div class="controls">
-        <button class="control-btn" onclick="playAnimation()">▶ Play</button>
-        <button class="control-btn" onclick="pauseAnimation()">⏸ Pause</button>
-        <button class="control-btn" onclick="stopAnimation()">⏹ Stop</button>
+        <button onclick="playAnimation()">▶️ Play</button>
+        <button onclick="pauseAnimation()">⏸️ Pause</button>
+        <button onclick="stopAnimation()">⏹️ Stop</button>
       </div>
 
       <div class="stats">
-        <div class="stat"><span id="signCount">0</span><p>Signs</p></div>
-        <div class="stat"><span id="wordCount">0</span><p>Words</p></div>
-        <div class="stat"><span id="duration">0s</span><p>Duration</p></div>
+        <div><b id="signCount">0</b><span>Signs</span></div>
+        <div><b id="wordCount">0</b><span>Words</span></div>
+        <div><b id="duration">0s</b><span>Duration</span></div>
       </div>
-    </div>
+    </section>
 
     <!-- SEQUENCE SECTION -->
-    <div class="card sequence-card">
+    <section class="card">
       <h2>📋 Translation Sequence</h2>
       <div id="signSequence" class="sign-sequence">
-        <p class="empty">Translation results will appear here...</p>
+        <div class="empty-state">
+          <span class="empty-icon">📝</span>
+          <p>Translated sequence will appear here</p>
+        </div>
       </div>
-    </div>
+    </section>
 
     <!-- FOOTER -->
     <footer>
-      <p>Made with ❤️ using Flask + Indian Sign Language Dataset</p>
-      <small>© 2025 Sign Language Translator Project</small>
+      <p>Made with ❤️ for Inclusive Communication</p>
     </footer>
   </div>
 
   <script src="{{ url_for('static', filename='js/script.js') }}"></script>
 </body>
 </html>
-
-
