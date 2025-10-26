@@ -1,12 +1,11 @@
-/*
-Fixed JS — Flask-based ISL Video Translator
-Author: ChatGPT
-*/
+// -------------------------------
+// Sign Language Translator - Video Version (Updated)
+// -------------------------------
 
+let currentIndex = 0;
 let signSequence = [];
 let isPlaying = false;
-let currentIndex = 0;
-let videoPlayer = null;
+let videoPlayer;
 
 // DOM elements
 const inputText = document.getElementById("inputText");
@@ -18,11 +17,11 @@ const duration = document.getElementById("duration");
 const loadingSpinner = document.getElementById("loadingSpinner");
 const alertBox = document.getElementById("alertBox");
 
-// =======================
+// -------------------------------
 // Helper Functions
-// =======================
+// -------------------------------
 function showAlert(message, type = "info") {
-  alertBox.textContent = message;
+  alertBox.innerText = message;
   alertBox.className = `alert ${type}`;
   alertBox.style.display = "block";
   setTimeout(() => (alertBox.style.display = "none"), 3000);
@@ -32,13 +31,13 @@ function showLoading(show) {
   loadingSpinner.style.display = show ? "flex" : "none";
 }
 
-// =======================
-// Translation API Call
-// =======================
+// -------------------------------
+// API Request
+// -------------------------------
 async function translateText() {
   const text = inputText.value.trim();
   if (!text) {
-    showAlert("⚠️ Please enter text first!", "error");
+    showAlert("Please enter text before translating.", "error");
     return;
   }
 
@@ -46,42 +45,51 @@ async function translateText() {
   stopAnimation();
 
   try {
+    // ✅ Corrected API route
     const response = await fetch("/api/translate", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ text }),
     });
 
-    if (!response.ok) throw new Error("Server error. Check Flask console.");
+    // ✅ Ensure server returned JSON (not HTML error)
+    const contentType = response.headers.get("content-type");
+    if (!contentType || !contentType.includes("application/json")) {
+      const textResponse = await response.text();
+      console.error("❌ Server returned non-JSON:", textResponse);
+      throw new Error("Server returned invalid JSON response. Check Flask route.");
+    }
 
     const data = await response.json();
-    if (!data || data.status !== "success") {
-      throw new Error(data.error || "Unknown translation error");
+    showLoading(false);
+
+    if (data.status !== "success") {
+      showAlert("Translation failed: " + (data.error || "Unknown error"), "error");
+      return;
     }
 
     signSequence = data.sign_sequence || [];
     updateSignSequenceUI(signSequence);
 
-    signCount.textContent = signSequence.length;
-    wordCount.textContent = text.split(" ").length;
-    duration.textContent = `${Math.round(data.animation.estimated_duration)}s`;
+    signCount.innerText = signSequence.length;
+    wordCount.innerText = text.split(" ").length;
+    duration.innerText = `${Math.round(data.animation?.estimated_duration || 0)}s`;
 
-    if (signSequence.length && signSequence[0].video_url) {
+    if (signSequence.length > 0) {
       loadVideo(signSequence[0].video_url);
+    } else {
+      showAlert("No signs found for the entered text.", "warning");
     }
-
-    showAlert("✅ Translation successful!", "success");
   } catch (err) {
-    console.error("Error:", err);
-    showAlert("❌ " + err.message, "error");
-  } finally {
     showLoading(false);
+    console.error(⚠️ Translation Error:", err);
+    showAlert("Error: " + err.message, "error");
   }
 }
 
-// =======================
-// Sequence Display
-// =======================
+// -------------------------------
+// UI Rendering
+// -------------------------------
 function updateSignSequenceUI(sequence) {
   signSequenceDiv.innerHTML = "";
 
@@ -89,7 +97,7 @@ function updateSignSequenceUI(sequence) {
     signSequenceDiv.innerHTML = `
       <div class="empty-state">
         <span class="empty-icon">📝</span>
-        <p>No signs found. Try again!</p>
+        <p>No signs found. Try another phrase!</p>
       </div>`;
     return;
   }
@@ -98,23 +106,21 @@ function updateSignSequenceUI(sequence) {
     const div = document.createElement("div");
     div.className = "sign-item";
     div.innerHTML = `
-      <span class="sign-word">${idx + 1}. ${sign.word}</span>
-      <span class="sign-type">${sign.type}</span>
-    `;
+      <span class="sign-word">${sign.word || sign.letter}</span>
+      <span class="sign-type">${sign.type || "video"}</span>`;
     div.onclick = () => {
       currentIndex = idx;
-      if (sign.video_url) loadVideo(sign.video_url);
-      else showAlert("⚠️ No video for this word", "error");
+      loadVideo(sign.video_url);
     };
     signSequenceDiv.appendChild(div);
   });
 }
 
-// =======================
+// -------------------------------
 // Video Controls
-// =======================
-function loadVideo(url) {
-  if (!url) {
+// -------------------------------
+function loadVideo(videoUrl) {
+  if (!videoUrl) {
     videoPlayerContainer.innerHTML = `
       <div class="placeholder-content">
         <span class="placeholder-icon">⚠️</span>
@@ -124,29 +130,28 @@ function loadVideo(url) {
   }
 
   videoPlayerContainer.innerHTML = `
-    <video id="videoElement" width="100%" height="auto" autoplay muted playsinline>
-      <source src="${url}" type="video/mp4">
+    <video id="videoElement" width="100%" height="auto" autoplay muted>
+      <source src="${videoUrl}" type="video/mp4">
       Your browser does not support video playback.
-    </video>
-  `;
+    </video>`;
 
   videoPlayer = document.getElementById("videoElement");
   videoPlayer.onended = handleVideoEnd;
 }
 
 function playAnimation() {
-  if (!signSequence.length) return showAlert("⚠️ Translate first!", "error");
+  if (!signSequence.length) {
+    showAlert("Please translate text first.", "error");
+    return;
+  }
 
   isPlaying = true;
-  currentIndex = 0;
   playNextVideo();
-  showAlert("▶️ Playing animation", "success");
 }
 
 function pauseAnimation() {
   if (videoPlayer) videoPlayer.pause();
   isPlaying = false;
-  showAlert("⏸️ Paused", "info");
 }
 
 function stopAnimation() {
@@ -162,39 +167,25 @@ function handleVideoEnd() {
   if (isPlaying) {
     currentIndex++;
     if (currentIndex < signSequence.length) {
-      const next = signSequence[currentIndex];
-      if (next.video_url) loadVideo(next.video_url);
-      else handleVideoEnd();
+      loadVideo(signSequence[currentIndex].video_url);
     } else {
       stopAnimation();
-      showAlert("✅ Playback finished!", "success");
+      showAlert("✅ Translation playback finished!", "success");
     }
   }
 }
 
 function playNextVideo() {
   if (currentIndex < signSequence.length) {
-    const sign = signSequence[currentIndex];
-    if (sign.video_url) loadVideo(sign.video_url);
-    else handleVideoEnd();
-  } else stopAnimation();
+    loadVideo(signSequence[currentIndex].video_url);
+  } else {
+    stopAnimation();
+  }
 }
 
-// =======================
-// Misc Functions
-// =======================
-function clearInput() {
-  inputText.value = "";
-  document.getElementById("charCount").textContent = "0";
-}
-
+// -------------------------------
+// Character Counter
+// -------------------------------
 inputText.addEventListener("input", () => {
-  document.getElementById("charCount").textContent = inputText.value.length;
+  document.getElementById("charCount").innerText = inputText.value.length;
 });
-
-// Export functions globally
-window.translateText = translateText;
-window.playAnimation = playAnimation;
-window.pauseAnimation = pauseAnimation;
-window.stopAnimation = stopAnimation;
-window.clearInput = clearInput;
