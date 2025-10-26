@@ -1,12 +1,8 @@
 /*
-File: static/js/script.js
-Description: Frontend JavaScript for Flask-based ISL Sign Language Translator (Video Version)
-Updated: Fixed API route, video playback, loading states, and improved visuals
+Fixed JS — Flask-based ISL Video Translator
+Author: ChatGPT
 */
 
-// ==================================================
-// GLOBAL VARIABLES
-// ==================================================
 let signSequence = [];
 let isPlaying = false;
 let currentIndex = 0;
@@ -22,34 +18,32 @@ const duration = document.getElementById("duration");
 const loadingSpinner = document.getElementById("loadingSpinner");
 const alertBox = document.getElementById("alertBox");
 
-// ==================================================
-// UTILITIES
-// ==================================================
-function showAlert(message, type = "success") {
-  alertBox.innerText = message;
+// =======================
+// Helper Functions
+// =======================
+function showAlert(message, type = "info") {
+  alertBox.textContent = message;
   alertBox.className = `alert ${type}`;
   alertBox.style.display = "block";
-  setTimeout(() => (alertBox.style.display = "none"), 3500);
+  setTimeout(() => (alertBox.style.display = "none"), 3000);
 }
 
 function showLoading(show) {
   loadingSpinner.style.display = show ? "flex" : "none";
 }
 
-// ==================================================
-// TRANSLATION REQUEST
-// ==================================================
+// =======================
+// Translation API Call
+// =======================
 async function translateText() {
   const text = inputText.value.trim();
-
   if (!text) {
-    showAlert("⚠️ Please enter text before translating.", "error");
+    showAlert("⚠️ Please enter text first!", "error");
     return;
   }
 
   showLoading(true);
   stopAnimation();
-  signSequenceDiv.innerHTML = `<div class="loading-text">Translating...</div>`;
 
   try {
     const response = await fetch("/api/translate", {
@@ -58,56 +52,51 @@ async function translateText() {
       body: JSON.stringify({ text }),
     });
 
-    if (!response.ok) {
-      const errorText = await response.text();
-      throw new Error(`Server error: ${errorText}`);
-    }
+    if (!response.ok) throw new Error("Server error. Check Flask console.");
 
     const data = await response.json();
-
     if (!data || data.status !== "success") {
-      throw new Error(data?.error || "Unknown error occurred");
+      throw new Error(data.error || "Unknown translation error");
     }
 
     signSequence = data.sign_sequence || [];
-
-    if (!signSequence.length) {
-      signSequenceDiv.innerHTML = `
-        <div class="empty-state">
-          <span class="empty-icon">📝</span>
-          <p>No matching signs found.</p>
-        </div>`;
-      showLoading(false);
-      return;
-    }
-
     updateSignSequenceUI(signSequence);
-    signCount.innerText = signSequence.length;
-    wordCount.innerText = text.split(" ").length;
-    duration.innerText = `${Math.round(data.animation.estimated_duration)}s`;
 
-    // Load first video automatically
-    if (signSequence[0].video_url) loadVideo(signSequence[0].video_url);
-    else showAlert("Some signs have no video files.", "error");
+    signCount.textContent = signSequence.length;
+    wordCount.textContent = text.split(" ").length;
+    duration.textContent = `${Math.round(data.animation.estimated_duration)}s`;
+
+    if (signSequence.length && signSequence[0].video_url) {
+      loadVideo(signSequence[0].video_url);
+    }
 
     showAlert("✅ Translation successful!", "success");
   } catch (err) {
-    console.error("Translation error:", err);
+    console.error("Error:", err);
     showAlert("❌ " + err.message, "error");
   } finally {
     showLoading(false);
   }
 }
 
-// ==================================================
-// SIGN SEQUENCE DISPLAY
-// ==================================================
+// =======================
+// Sequence Display
+// =======================
 function updateSignSequenceUI(sequence) {
   signSequenceDiv.innerHTML = "";
 
+  if (!sequence.length) {
+    signSequenceDiv.innerHTML = `
+      <div class="empty-state">
+        <span class="empty-icon">📝</span>
+        <p>No signs found. Try again!</p>
+      </div>`;
+    return;
+  }
+
   sequence.forEach((sign, idx) => {
     const div = document.createElement("div");
-    div.className = "sign-item fade-in";
+    div.className = "sign-item";
     div.innerHTML = `
       <span class="sign-word">${idx + 1}. ${sign.word}</span>
       <span class="sign-type">${sign.type}</span>
@@ -115,17 +104,17 @@ function updateSignSequenceUI(sequence) {
     div.onclick = () => {
       currentIndex = idx;
       if (sign.video_url) loadVideo(sign.video_url);
-      else showAlert("⚠️ No video available for this sign.", "error");
+      else showAlert("⚠️ No video for this word", "error");
     };
     signSequenceDiv.appendChild(div);
   });
 }
 
-// ==================================================
-// VIDEO PLAYER
-// ==================================================
-function loadVideo(videoUrl) {
-  if (!videoUrl) {
+// =======================
+// Video Controls
+// =======================
+function loadVideo(url) {
+  if (!url) {
     videoPlayerContainer.innerHTML = `
       <div class="placeholder-content">
         <span class="placeholder-icon">⚠️</span>
@@ -134,26 +123,19 @@ function loadVideo(videoUrl) {
     return;
   }
 
-  const videoHTML = `
+  videoPlayerContainer.innerHTML = `
     <video id="videoElement" width="100%" height="auto" autoplay muted playsinline>
-      <source src="${videoUrl}" type="video/mp4">
+      <source src="${url}" type="video/mp4">
       Your browser does not support video playback.
     </video>
   `;
 
-  videoPlayerContainer.innerHTML = videoHTML;
   videoPlayer = document.getElementById("videoElement");
   videoPlayer.onended = handleVideoEnd;
 }
 
-// ==================================================
-// VIDEO CONTROLS
-// ==================================================
 function playAnimation() {
-  if (!signSequence.length) {
-    showAlert("⚠️ Please translate some text first.", "error");
-    return;
-  }
+  if (!signSequence.length) return showAlert("⚠️ Translate first!", "error");
 
   isPlaying = true;
   currentIndex = 0;
@@ -174,7 +156,6 @@ function stopAnimation() {
   }
   isPlaying = false;
   currentIndex = 0;
-  showAlert("⏹️ Stopped", "info");
 }
 
 function handleVideoEnd() {
@@ -186,7 +167,7 @@ function handleVideoEnd() {
       else handleVideoEnd();
     } else {
       stopAnimation();
-      showAlert("✅ Playback complete!", "success");
+      showAlert("✅ Playback finished!", "success");
     }
   }
 }
@@ -196,45 +177,24 @@ function playNextVideo() {
     const sign = signSequence[currentIndex];
     if (sign.video_url) loadVideo(sign.video_url);
     else handleVideoEnd();
-  } else {
-    stopAnimation();
-  }
+  } else stopAnimation();
 }
 
-// ==================================================
-// UTILITIES
-// ==================================================
+// =======================
+// Misc Functions
+// =======================
 function clearInput() {
   inputText.value = "";
-  document.getElementById("charCount").innerText = "0";
+  document.getElementById("charCount").textContent = "0";
 }
 
-function clearResults() {
-  signSequence = [];
-  signSequenceDiv.innerHTML = `
-    <div class="empty-state">
-      <span class="empty-icon">📝</span>
-      <p>Translation will appear here</p>
-    </div>`;
-  stopAnimation();
-  wordCount.innerText = "0";
-  signCount.innerText = "0";
-  duration.innerText = "0s";
-}
-
-// ==================================================
-// CHARACTER COUNTER
-// ==================================================
 inputText.addEventListener("input", () => {
-  document.getElementById("charCount").innerText = inputText.value.length;
+  document.getElementById("charCount").textContent = inputText.value.length;
 });
 
-// ==================================================
-// EXPORT TO WINDOW
-// ==================================================
+// Export functions globally
 window.translateText = translateText;
 window.playAnimation = playAnimation;
 window.pauseAnimation = pauseAnimation;
 window.stopAnimation = stopAnimation;
 window.clearInput = clearInput;
-window.clearResults = clearResults;
