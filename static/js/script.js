@@ -1,11 +1,11 @@
 // -------------------------------
-// Sign Language Translator - Video Version (Fixed)
+// Sign Language Translator - Video Version (Updated)
 // -------------------------------
 
 let currentIndex = 0;
 let signSequence = [];
 let isPlaying = false;
-let videoPlayer = null;
+let videoPlayer;
 
 // DOM elements
 const inputText = document.getElementById("inputText");
@@ -21,7 +21,6 @@ const alertBox = document.getElementById("alertBox");
 // Helper Functions
 // -------------------------------
 function showAlert(message, type = "info") {
-  if (!alertBox) return;
   alertBox.innerText = message;
   alertBox.className = `alert ${type}`;
   alertBox.style.display = "block";
@@ -29,8 +28,7 @@ function showAlert(message, type = "info") {
 }
 
 function showLoading(show) {
-  if (!loadingSpinner) return;
-  loadingSpinner.style.display = show ? "block" : "none";
+  loadingSpinner.style.display = show ? "flex" : "none";
 }
 
 // -------------------------------
@@ -47,30 +45,26 @@ async function translateText() {
   stopAnimation();
 
   try {
+    // ✅ Corrected API route
     const response = await fetch("/api/translate", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ text }),
     });
 
-    if (!response.ok) {
-      const t = await response.text();
-      console.error("Server returned error:", response.status, t);
-      throw new Error("Server error: " + response.status);
-    }
-
-    const contentType = response.headers.get("content-type") || "";
-    if (!contentType.includes("application/json")) {
-      const txt = await response.text();
-      console.error("Non-JSON response:", txt);
-      throw new Error("Invalid server response (expected JSON).");
+    // ✅ Ensure server returned JSON (not HTML error)
+    const contentType = response.headers.get("content-type");
+    if (!contentType || !contentType.includes("application/json")) {
+      const textResponse = await response.text();
+      console.error("❌ Server returned non-JSON:", textResponse);
+      throw new Error("Server returned invalid JSON response. Check Flask route.");
     }
 
     const data = await response.json();
     showLoading(false);
 
-    if (!data || data.status !== "success") {
-      showAlert("Translation failed: " + (data && data.error ? data.error : "Unknown error"), "error");
+    if (data.status !== "success") {
+      showAlert("Translation failed: " + (data.error || "Unknown error"), "error");
       return;
     }
 
@@ -78,26 +72,17 @@ async function translateText() {
     updateSignSequenceUI(signSequence);
 
     signCount.innerText = signSequence.length;
-    wordCount.innerText = (text.split(/\s+/).filter(Boolean)).length;
+    wordCount.innerText = text.split(" ").length;
     duration.innerText = `${Math.round(data.animation?.estimated_duration || 0)}s`;
 
     if (signSequence.length > 0) {
-      // load first available video (skip nulls)
-      let firstIndex = signSequence.findIndex(s => s.video_url);
-      if (firstIndex === -1) {
-        showAlert("No video files available for the detected signs.", "warning");
-        loadVideo(null);
-      } else {
-        currentIndex = firstIndex;
-        loadVideo(signSequence[firstIndex].video_url);
-      }
+      loadVideo(signSequence[0].video_url);
     } else {
       showAlert("No signs found for the entered text.", "warning");
-      loadVideo(null);
     }
   } catch (err) {
     showLoading(false);
-    console.error("Translation Error:", err);
+    console.error(⚠️ Translation Error:", err);
     showAlert("Error: " + err.message, "error");
   }
 }
@@ -119,16 +104,13 @@ function updateSignSequenceUI(sequence) {
 
   sequence.forEach((sign, idx) => {
     const div = document.createElement("div");
-    div.className = "sign-item" + (sign.type === "fingerspell" ? " fingerspell" : "");
-    const label = sign.word || (sign.data && sign.data.file) || sign.letter || ("item" + idx);
+    div.className = "sign-item";
     div.innerHTML = `
-      <div style="font-weight:bold">${idx + 1}. ${label}</div>
-      <div style="font-size:0.85em;color:#666">${sign.type || 'sign'}</div>
-    `;
+      <span class="sign-word">${sign.word || sign.letter}</span>
+      <span class="sign-type">${sign.type || "video"}</span>`;
     div.onclick = () => {
       currentIndex = idx;
-      if (sign.video_url) loadVideo(sign.video_url);
-      else showAlert("No video available for this sign", "error");
+      loadVideo(sign.video_url);
     };
     signSequenceDiv.appendChild(div);
   });
@@ -144,20 +126,17 @@ function loadVideo(videoUrl) {
         <span class="placeholder-icon">⚠️</span>
         <p>Video not available</p>
       </div>`;
-    videoPlayer = null;
     return;
   }
 
   videoPlayerContainer.innerHTML = `
-    <video id="videoElement" width="100%" height="auto" autoplay controls playsinline>
+    <video id="videoElement" width="100%" height="auto" autoplay muted>
       <source src="${videoUrl}" type="video/mp4">
       Your browser does not support video playback.
     </video>`;
 
   videoPlayer = document.getElementById("videoElement");
-  if (videoPlayer) {
-    videoPlayer.onended = handleVideoEnd;
-  }
+  videoPlayer.onended = handleVideoEnd;
 }
 
 function playAnimation() {
@@ -167,23 +146,12 @@ function playAnimation() {
   }
 
   isPlaying = true;
-  // start from currentIndex (if it points to nothing, find next)
-  if (!signSequence[currentIndex] || !signSequence[currentIndex].video_url) {
-    currentIndex = signSequence.findIndex(s => s.video_url);
-    if (currentIndex === -1) {
-      showAlert("No video files available to play.", "error");
-      return;
-    }
-  }
-
-  loadVideo(signSequence[currentIndex].video_url);
-  showAlert("▶️ Playing animation", "success");
+  playNextVideo();
 }
 
 function pauseAnimation() {
   if (videoPlayer) videoPlayer.pause();
   isPlaying = false;
-  showAlert("⏸️ Paused", "info");
 }
 
 function stopAnimation() {
@@ -193,16 +161,12 @@ function stopAnimation() {
   }
   isPlaying = false;
   currentIndex = 0;
-  showAlert("⏹️ Stopped", "info");
 }
 
 function handleVideoEnd() {
   if (isPlaying) {
-    // move to next available video
-    let next = currentIndex + 1;
-    while (next < signSequence.length && !signSequence[next].video_url) next++;
-    if (next < signSequence.length) {
-      currentIndex = next;
+    currentIndex++;
+    if (currentIndex < signSequence.length) {
       loadVideo(signSequence[currentIndex].video_url);
     } else {
       stopAnimation();
@@ -211,12 +175,17 @@ function handleVideoEnd() {
   }
 }
 
+function playNextVideo() {
+  if (currentIndex < signSequence.length) {
+    loadVideo(signSequence[currentIndex].video_url);
+  } else {
+    stopAnimation();
+  }
+}
+
 // -------------------------------
 // Character Counter
 // -------------------------------
-if (inputText) {
-  inputText.addEventListener("input", () => {
-    const cc = document.getElementById("charCount");
-    if (cc) cc.innerText = inputText.value.length;
-  });
-}
+inputText.addEventListener("input", () => {
+  document.getElementById("charCount").innerText = inputText.value.length;
+});
