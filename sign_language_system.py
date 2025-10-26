@@ -1,173 +1,99 @@
 """
-Sign Language Translation System - Flask Video Version
-(Uses actual .mp4 sign language clips from static/videos/)
+sign_language_system.py
+Simple translator that maps words to video file names (static/videos/<file>)
 """
 
-import os
 from typing import List, Dict
+import string
 
-
-# ---------------------------------
-# TEXT PREPROCESSING
-# ---------------------------------
 class TextPreprocessor:
     def __init__(self):
         self.supported_languages = ['en', 'hi', 'mr']
 
-    def detect_language(self, text: str) -> str:
-        hindi_chars = sum(1 for c in text if '\u0900' <= c <= '\u097F')
-        english_chars = sum(1 for c in text if c.isascii() and c.isalpha())
-        return 'hi' if hindi_chars > english_chars else 'en'
-
     def normalize_text(self, text: str) -> str:
-        import string
-        return text.strip().lower().translate(str.maketrans('', '', string.punctuation))
+        text = text.strip().lower()
+        translator = str.maketrans('', '', string.punctuation)
+        return text.translate(translator)
 
     def tokenize(self, text: str) -> List[str]:
         return text.split()
 
-
-# ---------------------------------
-# SIGN LANGUAGE DICTIONARY
-# ---------------------------------
 class SignLanguageDictionary:
     def __init__(self):
-        self.base_path = "static/videos"
         self.word_to_sign = self.load_dictionary()
 
     def load_dictionary(self):
-        """
-        Maps words to corresponding sign language .mp4 filenames
-        """
+        # Map word -> filename (place matching mp4 files in static/videos/)
         return {
-            # Greetings
-            'hello': 'hello.mp4',
-            'hi': 'hello.mp4',
-            'hey': 'hello.mp4',
-            'नमस्ते': 'namaste.mp4',
-            'good morning': 'good_morning.mp4',
-            'good night': 'good_night.mp4',
-
-            # Gratitude
-            'thank': 'thank_you.mp4',
-            'thanks': 'thank_you.mp4',
-            'धन्यवाद': 'thank_you.mp4',
-            'please': 'please.mp4',
-            'कृपया': 'please.mp4',
-            'sorry': 'sorry.mp4',
-
-            # Confirmation
-            'yes': 'yes.mp4',
-            'no': 'no.mp4',
-            'ok': 'ok.mp4',
-            'agree': 'agree.mp4',
-            'disagree': 'disagree.mp4',
-
-            # Personal
-            'you': 'you.mp4',
-            'me': 'me.mp4',
-            'we': 'we.mp4',
-            'friend': 'friend.mp4',
-            'help': 'help.mp4',
-
-            # Emotions
-            'happy': 'happy.mp4',
-            'sad': 'sad.mp4',
-            'angry': 'angry.mp4',
-            'love': 'love.mp4',
-            'excited': 'excited.mp4',
-
-            # Questions
-            'what': 'what.mp4',
-            'where': 'where.mp4',
-            'when': 'when.mp4',
-            'who': 'who.mp4',
-            'how': 'how.mp4',
+            'hello': {'file': 'hello.mp4'},
+            'hi': {'file': 'hello.mp4'},
+            'thank': {'file': 'thank_you.mp4'},
+            'thanks': {'file': 'thank_you.mp4'},
+            'you': {'file': 'you.mp4'},
+            'help': {'file': 'help.mp4'},
+            'please': {'file': 'please.mp4'},
+            'sorry': {'file': 'sorry.mp4'},
+            'yes': {'file': 'yes.mp4'},
+            'no': {'file': 'no.mp4'},
+            'what': {'file': 'what.mp4'},
+            'where': {'file': 'where.mp4'},
+            'when': {'file': 'when.mp4'},
+            'who': {'file': 'who.mp4'},
+            'how': {'file': 'how.mp4'},
+            'one': {'file': '1.mp4'},
+            'two': {'file': '2.mp4'},
+            'three': {'file': '3.mp4'},
+            'four': {'file': '4.mp4'},
+            'five': {'file': '5.mp4'},
+            # add more mappings here...
         }
 
     def get_sign(self, word: str):
-        filename = self.word_to_sign.get(word.lower())
-        if filename:
-            video_url = f"/static/videos/{filename}"
-            return {
-                'sign_id': f"ISL_{word.upper()}",
-                'video_url': video_url,
-                'exists': os.path.exists(os.path.join(self.base_path, filename))
-            }
-        return None
+        return self.word_to_sign.get(word.lower(), None)
 
     def fingerspell(self, word: str) -> List[Dict]:
-        """
-        Fallback for unknown words (returns letter placeholders)
-        """
-        return [
-            {
-                'letter': c.upper(),
-                'sign_id': f'FS_{c.upper()}',
-                'video_url': f"/static/videos/{c.upper()}.mp4",
-                'exists': os.path.exists(os.path.join(self.base_path, f"{c.upper()}.mp4"))
-            }
-            for c in word if c.isalpha()
-        ]
+        return [{'letter': c.upper(), 'file': f'{c.upper()}.mp4'} for c in word if c.isalpha()]
 
 
-# ---------------------------------
-# TRANSLATION SYSTEM
-# ---------------------------------
 class SignLanguageTranslator:
     def __init__(self):
         self.preprocessor = TextPreprocessor()
         self.dictionary = SignLanguageDictionary()
 
     def apply_grammar_rules(self, tokens: List[str]) -> List[str]:
-        skip_words = ['a', 'an', 'the', 'is', 'am', 'are', 'was', 'were']
-        return [t for t in tokens if t not in skip_words]
+        skip = ['a', 'an', 'the', 'is', 'am', 'are', 'was', 'were']
+        return [t for t in tokens if t not in skip]
 
     def translate(self, text: str) -> List[Dict]:
-        if not text.strip():
-            return []
-
         normalized = self.preprocessor.normalize_text(text)
-        tokens = self.apply_grammar_rules(self.preprocessor.tokenize(normalized))
+        tokens = self.preprocessor.tokenize(normalized)
+        tokens = self.apply_grammar_rules(tokens)
 
-        sign_sequence = []
+        seq = []
         for token in tokens:
             sign = self.dictionary.get_sign(token)
-            if sign and sign['exists']:
-                sign_sequence.append({
-                    'word': token,
-                    'type': 'sign',
-                    'video_url': sign['video_url']
-                })
+            if sign:
+                seq.append({'word': token, 'type': 'sign', 'data': sign})
             else:
-                # fallback to fingerspelling
-                letters = self.dictionary.fingerspell(token)
-                sign_sequence.append({
-                    'word': token,
-                    'type': 'fingerspell',
-                    'letters': letters
-                })
-
-        return sign_sequence
+                # fallback to fingerspelling (each letter: your static/videos/A.mp4 etc.)
+                seq.append({'word': token, 'type': 'fingerspell', 'data': self.dictionary.fingerspell(token)})
+        return seq
 
 
-# ---------------------------------
-# MAIN SYSTEM WRAPPER
-# ---------------------------------
 class SignLanguageTranslationSystem:
     def __init__(self):
         self.translator = SignLanguageTranslator()
 
-    def process_request(self, text: str) -> Dict:
+    def process_request(self, text: str):
         try:
-            sequence = self.translator.translate(text)
+            sign_sequence = self.translator.translate(text)
             return {
                 'status': 'success',
                 'input_text': text,
-                'sign_sequence': sequence,
+                'sign_sequence': sign_sequence,
                 'animation': {
-                    'total_signs': len(sequence),
-                    'estimated_duration': len(sequence) * 2.5
+                    'total_signs': len(sign_sequence),
+                    'estimated_duration': len(sign_sequence) * 2.5
                 }
             }
         except Exception as e:
