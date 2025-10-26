@@ -14,7 +14,6 @@ CORS(app)
 # Initialize translation system
 translator = SignLanguageTranslationSystem()
 
-
 # ---------------------------
 # ROUTES
 # ---------------------------
@@ -29,8 +28,6 @@ def index():
 def api_translate():
     """
     Translate input text into sign language (returns video file info in JSON)
-    Example Request:
-        { "text": "hello how are you" }
     """
     try:
         data = request.get_json(silent=True)
@@ -43,23 +40,34 @@ def api_translate():
 
         result = translator.process_request(text)
 
-        # ✅ Add correct video URLs for each sign item
+        # ✅ Attach video URLs properly
         for item in result.get("sign_sequence", []):
             if item.get("type") == "sign":
                 data_obj = item.get("data", {})
                 video_file = data_obj.get("file")
+
                 if video_file:
                     abs_path = os.path.join(app.root_path, "static", "videos", video_file)
+
+                    # Debugging info
+                    print(f"🔍 Checking video: {abs_path}")
+
                     if os.path.exists(abs_path):
-                        # ✅ Flask-compatible path
-                        item["video_url"] = f"/static/videos/{video_file}"
+                        # ✅ Use Flask web path (not Windows path)
+                        web_path = f"/static/videos/{video_file}"
+                        item["video_url"] = web_path
+                        print(f"✅ Found video for '{item.get('word')}': {web_path}")
                     else:
-                        print(f"⚠️ Missing video file: {abs_path}")
+                        print(f"⚠️ Video file missing for '{item.get('word')}': {abs_path}")
                         item["video_url"] = None
                 else:
                     item["video_url"] = None
             else:
                 item["video_url"] = None
+
+        print("\n🎬 DEBUG: Final sign sequence")
+        for i, s in enumerate(result.get("sign_sequence", [])):
+            print(f"{i+1}. {s.get('word')} → {s.get('video_url')}")
 
         return jsonify(result), 200
 
@@ -85,17 +93,15 @@ def api_sign(word):
     sign = translator.translator.dictionary.get_sign(word)
     if sign:
         video_file = sign.get("file")
-        if video_file:
-            abs_path = os.path.join(app.root_path, "static", "videos", video_file)
-            if os.path.exists(abs_path):
-                return jsonify({
-                    "word": word,
-                    "video_url": f"/static/videos/{video_file}",
-                    "status": "success"
-                }), 200
-            else:
-                print(f"⚠️ Missing video file: {abs_path}")
-                return jsonify({"word": word, "status": "not_found"}), 404
+        abs_path = os.path.join(app.root_path, "static", "videos", video_file)
+        if os.path.exists(abs_path):
+            return jsonify({
+                "word": word,
+                "video_url": f"/static/videos/{video_file}",
+                "status": "success"
+            }), 200
+        else:
+            print(f"⚠️ Missing video file: {abs_path}")
     return jsonify({"word": word, "status": "not_found"}), 404
 
 
@@ -123,16 +129,15 @@ if __name__ == '__main__':
     os.makedirs("static/css", exist_ok=True)
     os.makedirs("static/js", exist_ok=True)
 
-    print("\n" + "=" * 60)
+    print("\n" + "="*60)
     print("🤟 INDIAN SIGN LANGUAGE TRANSLATOR (Video-based)")
-    print("=" * 60)
+    print("="*60)
     print("\n🌐 Visit: http://127.0.0.1:5000")
     print("📡 API:")
     print("  POST /api/translate")
     print("  GET  /api/dictionary")
     print("  GET  /api/sign/<word>")
     print("  GET  /api/health")
-    print("=" * 60 + "\n")
+    print("="*60 + "\n")
 
     app.run(debug=True, host="0.0.0.0", port=5000)
-
