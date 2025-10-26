@@ -39,8 +39,8 @@ def api_translate():
             return jsonify({"status": "error", "error": "Empty text"}), 400
 
         result = translator.process_request(text)
+        print(f"\n🧠 Processing request for: '{text}'")
 
-        # ✅ Attach video URLs properly
         for item in result.get("sign_sequence", []):
             if item.get("type") == "sign":
                 data_obj = item.get("data", {})
@@ -48,32 +48,64 @@ def api_translate():
 
                 if video_file:
                     abs_path = os.path.join(app.root_path, "static", "videos", video_file)
+                    abs_path = os.path.normpath(abs_path)
+                    web_path = f"/static/videos/{video_file}"
 
                     # Debugging info
-                    print(f"🔍 Checking video: {abs_path}")
+                    print(f"🔍 Checking: {abs_path}")
 
                     if os.path.exists(abs_path):
-                        # ✅ Use Flask web path (not Windows path)
-                        web_path = f"/static/videos/{video_file}"
                         item["video_url"] = web_path
-                        print(f"✅ Found video for '{item.get('word')}': {web_path}")
+                        print(f"✅ Found and linked: {web_path}")
                     else:
-                        print(f"⚠️ Video file missing for '{item.get('word')}': {abs_path}")
+                        print(f"⚠️ File not found: {abs_path}")
                         item["video_url"] = None
                 else:
                     item["video_url"] = None
             else:
                 item["video_url"] = None
 
-        print("\n🎬 DEBUG: Final sign sequence")
+        print("\n🎬 Final translation result:")
         for i, s in enumerate(result.get("sign_sequence", [])):
-            print(f"{i+1}. {s.get('word')} → {s.get('video_url')}")
+            print(f" {i+1}. {s.get('word')} → {s.get('video_url')}")
 
         return jsonify(result), 200
 
     except Exception as e:
         print("🔥 ERROR in /api/translate:", e)
         return jsonify({"status": "error", "error": str(e)}), 500
+
+
+@app.route('/api/sign/<word>', methods=['GET'])
+def api_sign(word):
+    """Return sign (video) info for a specific word"""
+    sign = translator.translator.dictionary.get_sign(word)
+    if sign:
+        video_file = sign.get("file")
+        abs_path = os.path.join(app.root_path, "static", "videos", video_file)
+        abs_path = os.path.normpath(abs_path)
+        web_path = f"/static/videos/{video_file}"
+
+        if os.path.exists(abs_path):
+            print(f"✅ [api/sign] Serving '{word}' → {web_path}")
+            return jsonify({"word": word, "video_url": web_path, "status": "success"}), 200
+        else:
+            print(f"⚠️ [api/sign] Missing file: {abs_path}")
+    return jsonify({"word": word, "status": "not_found"}), 404
+
+
+@app.route('/static/videos/<path:filename>')
+def serve_video(filename):
+    """Serve video files from static/videos"""
+    full_path = os.path.join(app.root_path, "static", "videos", filename)
+    print(f"🎥 Request received for: {full_path}")
+
+    if os.path.exists(full_path):
+        print("✅ File found, serving video.")
+        return send_from_directory(os.path.join(app.root_path, "static", "videos"), filename)
+    else:
+        print("❌ File not found:", full_path)
+        return jsonify({"error": f"Video '{filename}' not found"}), 404
 
 
 @app.route('/api/dictionary', methods=['GET'])
@@ -85,30 +117,6 @@ def api_dictionary():
         "total_words": len(words),
         "words": list(words.keys())
     })
-
-
-@app.route('/api/sign/<word>', methods=['GET'])
-def api_sign(word):
-    """Return sign (video) info for a specific word"""
-    sign = translator.translator.dictionary.get_sign(word)
-    if sign:
-        video_file = sign.get("file")
-        abs_path = os.path.join(app.root_path, "static", "videos", video_file)
-        if os.path.exists(abs_path):
-            return jsonify({
-                "word": word,
-                "video_url": f"/static/videos/{video_file}",
-                "status": "success"
-            }), 200
-        else:
-            print(f"⚠️ Missing video file: {abs_path}")
-    return jsonify({"word": word, "status": "not_found"}), 404
-
-
-@app.route('/static/videos/<path:filename>')
-def serve_video(filename):
-    """Serve video files from static/videos"""
-    return send_from_directory("static/videos", filename)
 
 
 @app.route('/api/health', methods=['GET'])
